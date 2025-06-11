@@ -1,37 +1,42 @@
 // src/pages/Home.jsx
-import React from "react";
+import React, { useState } from "react";
 import { Box, Typography, Button, Paper } from "@mui/material";
 import { keyframes } from "@emotion/react";
 import styled from "@emotion/styled";
 
-const fadeIn = keyframes`
+export default function Home() {
+  const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 `;
 
-const AnimatedPaper = styled(Paper)`
-  animation: ${fadeIn} 1s ease forwards;
-  padding: 3rem;
-  text-align: center;
-  max-width: 600px;
-  margin: auto;
-  background: linear-gradient(135deg, #e0f7fa, #fff);
-  border-radius: 16px;
-  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
-`;
+  const AnimatedPaper = styled(Paper)`
+    animation: ${fadeIn} 1s ease forwards;
+    padding: 3rem;
+    text-align: center;
+    max-width: 600px;
+    margin: auto;
+    background: linear-gradient(135deg, #e0f7fa, #fff);
+    border-radius: 16px;
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+  `;
 
-const ConnectButton = styled(Button)`
-  margin-top: 2rem;
-  font-weight: bold;
-  padding: 0.75rem 2rem;
-  background-color: #1976d2;
-  color: white;
-  &:hover {
-    background-color: #1565c0;
-  }
-`;
+  const ConnectButton = styled(Button)`
+    margin-top: 2rem;
+    font-weight: bold;
+    padding: 0.75rem 2rem;
+    width: 100%;
+    background-color: #1976d2;
+    color: white;
+    &:hover {
+      background-color: #1565c0;
+    }
+  `;
+  const [userData, setUserData] = useState({
+    email: "",
+    password: "",
+  });
 
-export default function Home() {
   return (
     <Box
       sx={{
@@ -74,6 +79,59 @@ export default function Home() {
         >
           La gestion de notre activitée BTP intuitive et rapide.
         </Typography>
+        <Box
+          component="form"
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 2,
+            mb: 3,
+            mt: 2,
+            width: "100%",
+          }}
+          noValidate
+          autoComplete="off"
+        >
+          <Box sx={{ width: "100%" }}>
+            <Typography variant="subtitle1" sx={{ textAlign: "left", mb: 1 }}>
+              Email
+            </Typography>
+            <input
+              type="email"
+              name="email"
+              placeholder="Entrez votre email"
+              value={userData.email}
+              style={{
+                width: "100%",
+                padding: "12px",
+                borderRadius: "8px",
+                border: "1px solid #bdbdbd",
+                fontSize: "1rem",
+                outline: "none",
+                marginBottom: "8px",
+              }}
+            />
+          </Box>
+          <Box sx={{ width: "100%" }}>
+            <Typography variant="subtitle1" sx={{ textAlign: "left", mb: 1 }}>
+              Mot de passe
+            </Typography>
+            <input
+              type="password"
+              name="password"
+              placeholder="Entrez votre mot de passe"
+              style={{
+                width: "100%",
+                padding: "12px",
+                borderRadius: "8px",
+                border: "1px solid #bdbdbd",
+                fontSize: "1rem",
+                outline: "none",
+              }}
+            />
+          </Box>
+        </Box>
         <ConnectButton
           variant="contained"
           sx={{
@@ -85,7 +143,7 @@ export default function Home() {
               boxShadow: "0 0 40px 10px #2196f3",
             },
           }}
-          onClick={() => window.location.assign("/login")}
+          // onClick={() => window.location.assign("/login")}
         >
           Se connecter
         </ConnectButton>
