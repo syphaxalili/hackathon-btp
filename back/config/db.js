@@ -1,34 +1,57 @@
-// config/database.js
-require('dotenv').config();
-const { Sequelize } = require('sequelize');
+require("dotenv").config();
+const mysql = require("mysql2");
+const { Sequelize } = require("sequelize");
 
-//Connection à la base de données avec Sequelize
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASS,
-  {
-    host: process.env.DB_HOST,
-    dialect: 'mysql',
-    logging: false
-  }
-);
+let sequelize; // on l'initialise plus tard, après création de la base
 
-///Vérif si la base de données existe déjà et la créer si nécessaire
-async function ensureDatabase() {
-  const { DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT } = process.env;
-  // Connexion au serveur sans choisir de base
+// Fonction pour créer la base si elle n'existe pas
+async function initialize() {
   const connection = await mysql.createConnection({
-    host: DB_HOST,
-    port: DB_PORT || 3306,
-    user: DB_USER,
-    password: DB_PASS
+    host: process.env.DB_HOST || "localhost",
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASS || "",
   });
-  // Création si nécessaire
-  await connection.query(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\`;`);
-  console.log(`✅ Base '${DB_NAME}' OK (existante ou créée)`);
-  await connection.end();
+
+  try {
+    // Crée la base si elle n'existe pas déjà
+    await connection.query(
+      `CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci`
+    );
+    console.log(`✅ Base "${process.env.DB_NAME}" créée ou existante.`);
+  } catch (error) {
+    console.error("❌ Erreur lors de la création de la base :", error);
+    throw error;
+  } finally {
+    await connection.end();
+  }
+
+  // Initialise Sequelize uniquement après que la base existe
+  sequelize = new Sequelize(
+    process.env.DB_NAME,
+    process.env.DB_USER,
+    process.env.DB_PASS,
+    {
+      host: process.env.DB_HOST || "localhost",
+      dialect: "mysql",
+      logging: false,
+    }
+  );
+
+  try {
+    await sequelize.authenticate();
+    console.log("✅ Connexion Sequelize réussie.");
+  } catch (error) {
+    console.error("❌ Échec de la connexion Sequelize :", error);
+    throw error;
+  }
 }
 
+// Permet d'importer sequelize ailleurs une fois initialisé
+function getSequelize() {
+  if (!sequelize) {
+    throw new Error("Sequelize n'est pas encore initialisé. Appelle initialize() d'abord.");
+  }
+  return sequelize;
+}
 
-module.exports = sequelize, ensureDatabase;
+module.exports = { initialize, getSequelize };
