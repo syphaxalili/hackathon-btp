@@ -23,7 +23,7 @@ const StyledPaper = styled(Paper)`
   text-align: center;
   max-width: 600px;
   margin: auto;
-  background: linear-gradient(135deg, #424242, #212121);
+  background: linear-gradient(135deg, #e0f7fa, #fff);
   border-radius: 16px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
   color: white;
@@ -33,6 +33,7 @@ const BackHomeButton = styled(Button)`
   margin-top: 2rem;
   font-weight: bold;
   padding: 0.75rem 2.5rem;
+  width: 100%;
   animation: ${shake} 1s infinite ease-in-out;
   background-color: #d32f2f;
   color: white;
@@ -67,7 +68,7 @@ export default function Unauthorized() {
         >
           Accès refusé
         </Typography>
-        <Typography variant="h6" sx={{ mb: 3 }}>
+        <Typography variant="h6" sx={{ mb: 3, color: "#191015" }}>
           Vous n’avez pas l’autorisation pour accéder à cette page.
         </Typography>
         <BackHomeButton onClick={() => navigate("/")}>
