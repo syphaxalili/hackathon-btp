@@ -1,53 +1,35 @@
-require("dotenv").config();
-const express = require("express");
-const sqlite3 = require("sqlite3").verbose();
-const path = require("path");
+require('dotenv').config();
+const mysql = require('mysql2/promise');
+const express = require('express');
 
 const app = express();
 const port = process.env.PORT || 5500;
 
-// Définir le chemin vers la base de données
-const dbPath = path.join(__dirname, `${process.env.DB_NAME}.sqlite`);
+async function main() {
+  // Connexion au serveur MySQL (sans base définie)
+  const connection = await mysql.createConnection({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASS || '',
+  });
 
-// Créer ou ouvrir la base de données
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error(
-      "Erreur lors de l’ouverture de la base de données :",
-      err.message
-    );
-  } else {
-    console.log(`Connecté à la base de données SQLite : ${dbPath}`);
-    // Créer la table si elle n'existe pas
-    db.run(
-      `
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                email TEXT UNIQUE NOT NULL
-            )
-        `,
-      (err) => {
-        if (err) {
-          console.error(
-            "Erreur lors de la création de la table :",
-            err.message
-          );
-        } else {
-          console.log('La table "users" est prête.');
-        }
-      }
-    );
-  }
-});
+  // Création de la base si non existante
+  await connection.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\``);
+  console.log(`Base "${process.env.DB_NAME}" créée ou existante.`);
 
-// Route de test
-app.get("/", (req, res) => {
-  console.log("Requête GET / reçue");
-  res.send("Serveur Node + SQLite opérationnel");
-});
+  // Maintenant tu peux te reconnecter sur cette base pour faire d’autres requêtes
+  await connection.end();
 
-// Démarrer le serveur (toujours, même si la DB a une erreur)
-app.listen(port, () => {
-  console.log(`✅ Serveur Express démarré sur http://localhost:${port}`);
+  app.get('/', (req, res) => {
+    res.send('Serveur Node + MySQL opérationnel');
+  });
+
+  app.listen(port, () => {
+    console.log(`Serveur lancé sur http://localhost:${port}`);
+  });
+}
+
+main().catch(err => {
+  console.error('Erreur:', err);
+  process.exit(1);
 });
