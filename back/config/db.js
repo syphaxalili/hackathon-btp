@@ -1,47 +1,34 @@
+// config/database.js
 require('dotenv').config();
+const { Sequelize } = require('sequelize');
 
-const mysql = require('mysql2/promise');
+//Connection à la base de données avec Sequelize
+const sequelize = new Sequelize(
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASS,
+  {
+    host: process.env.DB_HOST,
+    dialect: 'mysql',
+    logging: false
+  }
+);
 
-// Configuration du pool de connexions
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASS || '',
-  database: process.env.DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
-
-// Fonction pour initialiser la base de données
-async function initialize() {
-  // Connexion sans base de données pour créer la base si besoin
+///Vérif si la base de données existe déjà et la créer si nécessaire
+async function ensureDatabase() {
+  const { DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT } = process.env;
+  // Connexion au serveur sans choisir de base
   const connection = await mysql.createConnection({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASS || ''
+    host: DB_HOST,
+    port: DB_PORT || 3306,
+    user: DB_USER,
+    password: DB_PASS
   });
-  try {
-    // Création de la base si non existante
-    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\``);
-    console.log(`Base "${process.env.DB_NAME}" créée ou existante.`);
-  } finally {
-    await connection.end();
-  }
+  // Création si nécessaire
+  await connection.query(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\`;`);
+  console.log(`✅ Base '${DB_NAME}' OK (existante ou créée)`);
+  await connection.end();
 }
 
-// Fonction pour exécuter une requête
-async function query(sql, params = []) {
-  const connection = await pool.getConnection();
-  try {
-    const [rows] = await connection.query(sql, params);
-    return rows;
-  } finally {
-    connection.release();
-  }
-}
 
-module.exports = {
-  initialize,
-  query
-};
+module.exports = sequelize, ensureDatabase;
