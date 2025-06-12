@@ -7,3 +7,5 @@ module.exports = (sequelize, DataTypes) =>
     last_name:  { type: DataTypes.STRING,  allowNull: false },
     is_actif:   { type: DataTypes.BOOLEAN, defaultValue: true }
   });
+
+  

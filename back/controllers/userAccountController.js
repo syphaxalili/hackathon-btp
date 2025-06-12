@@ -52,7 +52,7 @@ class UserAccountController extends BaseController {
       }
 
       // 1. Vérifie si l'utilisateur existe
-      const user = await UserAccountModel.findByEmail(email);
+      const user = await UserAccountModel.findOne({ where: { email } });
       if (!user) {
         return this.errorResponse(res, "Invalid email or password", 401);
       }
@@ -69,7 +69,7 @@ class UserAccountController extends BaseController {
         email: user.email,
         user_type: user.user_type,
       };
-      const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      const token = jwt.sign(payload, "dev-secret", {
         expiresIn: "1d",
       });
 
@@ -79,7 +79,6 @@ class UserAccountController extends BaseController {
       // 5. Envoie le token dans un cookie sécurisé
       res.cookie("token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
         maxAge: 24 * 60 * 60 * 1000, // 1 jour
       });
 
