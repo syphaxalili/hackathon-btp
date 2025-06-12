@@ -15,16 +15,18 @@ const pool = mysql.createPool({
 
 // Fonction pour initialiser la base de données
 async function initialize() {
-  const connection = await pool.getConnection();
+  // Connexion sans base de données pour créer la base si besoin
+  const connection = await mysql.createConnection({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASS || ''
+  });
   try {
     // Création de la base si non existante
     await connection.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\``);
     console.log(`Base "${process.env.DB_NAME}" créée ou existante.`);
-    
-    // Sélection de la base de données
-    await connection.query(`USE \`${process.env.DB_NAME}\``);
   } finally {
-    connection.release();
+    await connection.end();
   }
 }
 
