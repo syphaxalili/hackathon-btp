@@ -1,8 +1,8 @@
 // App.jsx
 import { Routes, Route } from "react-router-dom";
-import Home from "./Componant/Home/Home";
-import NotFound from "./Componant/Atom/NotFound";
-import Unauthorized from "./Componant/Atom/Unauthorized";
+import Home from "./components/Home/Home";
+import NotFound from "./components/Atom/NotFound";
+import Unauthorized from "./components/Atom/Unauthorized";
 
 function App() {
   return (
