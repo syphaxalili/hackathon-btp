@@ -1,3 +1,4 @@
+// models/Category.js
 module.exports = (sequelize, DataTypes) =>
   sequelize.define(
     "Category",

@@ -1,5 +1,6 @@
+//config/db.js
 require("dotenv").config();
-const mysql = require("mysql2");
+const mysql = require("mysql2/promise");
 const { Sequelize } = require("sequelize");
 
 let sequelize; // on l'initialise plus tard, après création de la base
@@ -49,7 +50,9 @@ async function initialize() {
 // Permet d'importer sequelize ailleurs une fois initialisé
 function getSequelize() {
   if (!sequelize) {
-    throw new Error("Sequelize n'est pas encore initialisé. Appelle initialize() d'abord.");
+    throw new Error(
+      "Sequelize n'est pas encore initialisé. Appelle initialize() d'abord."
+    );
   }
   return sequelize;
 }

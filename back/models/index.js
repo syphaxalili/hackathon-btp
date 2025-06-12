@@ -1,42 +1,60 @@
 // models/index.js
-const Sequelize    = require('sequelize');
-const sequelize    = require('../config/db');
-const DataTypes    = Sequelize.DataTypes;
 
-// Import des modèles
-const Category        = require('./Category')(sequelize, DataTypes);
-const SkillsList      = require('./SkillsList')(sequelize, DataTypes);
-const UserAccount     = require('./UserAccount')(sequelize, DataTypes);
-const StakeHolder     = require('./StakeHolder')(sequelize, DataTypes);
-const ConstructionSite= require('./ConstructionSite')(sequelize, DataTypes);
-const Periodicity     = require('./Periodicity')(sequelize, DataTypes);
+const Sequelize = require("sequelize");
+const DataTypes = Sequelize.DataTypes;
 
-// 1-N Category → SkillsList
-Category.hasMany(SkillsList, { foreignKey: 'CategoryId' });
-SkillsList.belongsTo(Category, { foreignKey: 'CategoryId' });
+module.exports = (sequelize) => {
+  const Category = require("./Category")(sequelize, DataTypes);
+  const SkillsList = require("./SkillsList")(sequelize, DataTypes);
+  const UserAccount = require("./UserAccount")(sequelize, DataTypes);
+  const StakeHolder = require("./StakeHolder")(sequelize, DataTypes);
+  const ConstructionSite = require("./ConstructionSite")(sequelize, DataTypes);
+  const Periodicity = require("./Periodicity")(sequelize, DataTypes);
 
-// N-N Site ↔ Users (SiteWorkers)
-ConstructionSite.belongsToMany(UserAccount,   { through: 'SiteWorkers', as: 'workers' });
-UserAccount.belongsToMany(ConstructionSite,   { through: 'SiteWorkers', as: 'sites' });
+  // Associations
+  Category.hasMany(SkillsList, { foreignKey: "CategoryId" });
+  SkillsList.belongsTo(Category, { foreignKey: "CategoryId" });
 
-// N-N Site ↔ Skills (SiteSkills)
-ConstructionSite.belongsToMany(SkillsList,    { through: 'SiteSkills',  as: 'skills' });
-SkillsList.belongsToMany(ConstructionSite,    { through: 'SiteSkills',  as: 'sites' });
+  ConstructionSite.belongsToMany(UserAccount, {
+    through: "SiteWorkers",
+    as: "workers",
+  });
+  UserAccount.belongsToMany(ConstructionSite, {
+    through: "SiteWorkers",
+    as: "sites",
+  });
 
-// 1-N StakeHolder → Site
-StakeHolder.hasMany(ConstructionSite, { foreignKey: 'st_Id', as: 'sites' });
-ConstructionSite.belongsTo(StakeHolder, { foreignKey: 'st_Id', as: 'stakeholder' });
+  ConstructionSite.belongsToMany(SkillsList, {
+    through: "SiteSkills",
+    as: "skills",
+  });
+  SkillsList.belongsToMany(ConstructionSite, {
+    through: "SiteSkills",
+    as: "sites",
+  });
 
-// 1-N Site → Periodicity
-ConstructionSite.hasMany(Periodicity, { foreignKey: 'ConstructionId', as: 'periodicities' });
-Periodicity.belongsTo(ConstructionSite, { foreignKey: 'ConstructionId', as: 'site' });
+  StakeHolder.hasMany(ConstructionSite, { foreignKey: "st_Id", as: "sites" });
+  ConstructionSite.belongsTo(StakeHolder, {
+    foreignKey: "st_Id",
+    as: "stakeholder",
+  });
 
-module.exports = {
-  sequelize,
-  Category,
-  SkillsList,
-  UserAccount,
-  StakeHolder,
-  ConstructionSite,
-  Periodicity
+  ConstructionSite.hasMany(Periodicity, {
+    foreignKey: "ConstructionId",
+    as: "periodicities",
+  });
+  Periodicity.belongsTo(ConstructionSite, {
+    foreignKey: "ConstructionId",
+    as: "site",
+  });
+
+  return {
+    sequelize,
+    Category,
+    SkillsList,
+    UserAccount,
+    StakeHolder,
+    ConstructionSite,
+    Periodicity,
+  };
 };
