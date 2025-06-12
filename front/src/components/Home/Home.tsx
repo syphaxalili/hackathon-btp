@@ -4,34 +4,35 @@ import { Box, Typography, Button, Paper } from "@mui/material";
 import { keyframes } from "@emotion/react";
 import styled from "@emotion/styled";
 
-export default function Home() {
-  const fadeIn = keyframes`
+const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 `;
 
-  const AnimatedPaper = styled(Paper)`
-    animation: ${fadeIn} 1s ease forwards;
-    padding: 3rem;
-    text-align: center;
-    max-width: 600px;
-    margin: auto;
-    background: linear-gradient(135deg, #e0f7fa, #fff);
-    border-radius: 16px;
-    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
-  `;
+const AnimatedPaper = styled(Paper)`
+  animation: ${fadeIn} 1s ease forwards;
+  padding: 3rem;
+  text-align: center;
+  max-width: 600px;
+  margin: auto;
+  background: linear-gradient(135deg, #e0f7fa, #fff);
+  border-radius: 16px;
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+`;
 
-  const ConnectButton = styled(Button)`
-    margin-top: 2rem;
-    font-weight: bold;
-    padding: 0.75rem 2rem;
-    width: 100%;
-    background-color: #1976d2;
-    color: white;
-    &:hover {
-      background-color: #1565c0;
-    }
-  `;
+const ConnectButton = styled(Button)`
+  margin-top: 2rem;
+  font-weight: bold;
+  padding: 0.75rem 2rem;
+  width: 100%;
+  background-color: #1976d2;
+  color: white;
+  &:hover {
+    background-color: #1565c0;
+  }
+`;
+
+export default function Home() {
   const [userData, setUserData] = useState({
     email: "",
     password: "",
@@ -102,6 +103,9 @@ export default function Home() {
               name="email"
               placeholder="Entrez votre email"
               value={userData.email}
+              onChange={(e) =>
+                setUserData({ ...userData, email: e.target.value })
+              }
               style={{
                 width: "100%",
                 padding: "12px",
@@ -120,6 +124,9 @@ export default function Home() {
             <input
               type="password"
               name="password"
+              onChange={(e) =>
+                setUserData({ ...userData, password: e.target.value })
+              }
               placeholder="Entrez votre mot de passe"
               style={{
                 width: "100%",
