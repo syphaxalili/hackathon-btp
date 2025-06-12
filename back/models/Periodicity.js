@@ -1,4 +1,3 @@
-// models/Periodicity.js
 module.exports = (sequelize, DataTypes) =>
   sequelize.define('Periodicity', {
     id:         { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },

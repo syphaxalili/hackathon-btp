@@ -1,4 +1,3 @@
-// models/SkillsList.js
 module.exports = (sequelize, DataTypes) =>
   sequelize.define('SkillsList', {
     id:   { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
