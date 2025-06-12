@@ -1,35 +1,37 @@
-require('dotenv').config();
-const mysql = require('mysql2/promise');
 const express = require('express');
+const { initialize } = require('./config/db');
 
 const app = express();
-const port = process.env.PORT || 5500;
+const port = 5500;
 
 async function main() {
-  // Connexion au serveur MySQL (sans base définie)
-  const connection = await mysql.createConnection({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASS || '',
-  });
+  try {
+    console.log('Initialisation de la base de données...');
+    await initialize();
+    console.log('Base de données initialisée avec succès !');
 
-  // Création de la base si non existante
-  await connection.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\``);
-  console.log(`Base "${process.env.DB_NAME}" créée ou existante.`);
+    app.get('/', (req, res) => {
+      res.send('Serveur Node + MySQL opérationnel');
+    });
 
-  // Maintenant tu peux te reconnecter sur cette base pour faire d’autres requêtes
-  await connection.end();
+    // Démarrage du serveur
+    const server = app.listen(port, () => {
+        console.log(`Serveur lancé sur http://localhost:${port}`);
+    });
 
-  app.get('/', (req, res) => {
-    res.send('Serveur Node + MySQL opérationnel');
-  });
+    // Gestion propre de l'arrêt du serveur
+    process.on('SIGINT', () => {
+      console.log('Arrêt du serveur...');
+      server.close(() => {
+        console.log('Serveur arrêté');
+        process.exit(0);
+      });
+    });
 
-  app.listen(port, () => {
-    console.log(`Serveur lancé sur http://localhost:${port}`);
-  });
+  } catch (error) {
+    console.error('Erreur lors de la connexion à la base de données:', error);
+    process.exit(1);
+  }
 }
 
-main().catch(err => {
-  console.error('Erreur:', err);
-  process.exit(1);
-});
+main();
