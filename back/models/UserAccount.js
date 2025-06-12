@@ -1,4 +1,3 @@
-// models/UserAccount.js
 module.exports = (sequelize, DataTypes) =>
   sequelize.define('UserAccount', {
     id:         { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
