@@ -1,15 +1,24 @@
 // models/StakeHolder.js
-module.exports = (sequelize, DataTypes) =>
-  sequelize.define('StakeHolder', {
+const { Model } = require('sequelize');
+const AbstractGeolocation = require('./AbstractGeolocation');
+
+module.exports = (sequelize, DataTypes) => {
+  class StakeHolder extends AbstractGeolocation {}
+
+  StakeHolder.init({
     id:           { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     name:         { type: DataTypes.STRING,  allowNull: false },
     tax_number:   { type: DataTypes.STRING },
     vat_number:   { type: DataTypes.STRING },
     is_actif:     { type: DataTypes.BOOLEAN, defaultValue: true },
-    address:      { type: DataTypes.STRING },
-    postale_code: { type: DataTypes.INTEGER },
-    city:         { type: DataTypes.STRING },
-    country:      { type: DataTypes.STRING },
-    number_phone: { type: DataTypes.STRING },
-    email:        { type: DataTypes.STRING }
+    // mixin des champs géo
+    ...AbstractGeolocation.geolocationAttributes()
+  }, {
+    sequelize,
+    modelName: 'StakeHolder',
+    tableName: 'StakeHolders',
+    timestamps: false
   });
+
+  return StakeHolder;
+};

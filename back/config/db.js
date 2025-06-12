@@ -1,7 +1,20 @@
-// config/createDatabase.js
+// config/database.js
 require('dotenv').config();
-const mysql = require('mysql2/promise');
+const { Sequelize } = require('sequelize');
 
+//Connection à la base de données avec Sequelize
+const sequelize = new Sequelize(
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASS,
+  {
+    host: process.env.DB_HOST,
+    dialect: 'mysql',
+    logging: false
+  }
+);
+
+///Vérif si la base de données existe déjà et la créer si nécessaire
 async function ensureDatabase() {
   const { DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT } = process.env;
   // Connexion au serveur sans choisir de base
@@ -17,4 +30,5 @@ async function ensureDatabase() {
   await connection.end();
 }
 
-module.exports = ensureDatabase;
+
+module.exports = sequelize, ensureDatabase;
