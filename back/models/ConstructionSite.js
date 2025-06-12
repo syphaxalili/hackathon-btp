@@ -1,4 +1,3 @@
-// models/ConstructionSite.js
 const { Model } = require('sequelize');
 const AbstractGeolocation = require('./AbstractGeolocation');
 
