@@ -3,7 +3,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 class UserAccountController {
-
   static async create(req, res) {
     try {
       const { UserAccount } = req.models;
@@ -74,8 +73,9 @@ class UserAccountController {
       delete userJson.password;
 
       res.cookie("token", token, {
-        httpOnly: true,
+        httpOnly: false,
         maxAge: 24 * 60 * 60 * 1000,
+        samsite: "lax",
       });
 
       return successResponse(res, { user, token });
@@ -152,7 +152,7 @@ class UserAccountController {
       if (Object.keys(updateData).length > 0) {
         await UserAccount.update(id, updateData);
       }
-      
+
       const updatedUser = await UserAccount.findById(id);
 
       // Remove sensitive data from response
@@ -185,27 +185,29 @@ class UserAccountController {
   // Get current user profile
   static async getMe(req, res) {
     try {
-      // L'utilisateur est déjà disponible dans req.user grâce au middleware d'authentification
+      // Vérifie que l'utilisateur a été injecté par le middleware d'auth
       const user = req.user;
 
-      if (!user) {
-        return errorResponse(res, 'User not authenticated', 401);
+      if (!user || !user.id) {
+        return errorResponse(res, "User not authenticated", 401);
       }
 
-      // Récupérer les informations complètes de l'utilisateur
-      const { UserAccount } = req.models;
-      const userData = await UserAccount.findById(user.id);
+      // Récupère l'utilisateur dans la base de données
+      const userData = await req.models.UserAccount.findByPk(user.id);
 
       if (!userData) {
-        return notFoundResponse(res, 'User');
+        return notFoundResponse(res, "User");
       }
 
-      // Supprimer les données sensibles avant l'envoi
-      const { password_hash, ...userWithoutPassword } = userData;
+      // Supprime les champs sensibles
+      const { password_hash, ...userWithoutPassword } = userData.get({
+        plain: true,
+      });
 
-      return successResponse(res, userWithoutPassword);
+      // Renvoie les données utilisateur dans un objet "user"
+      return successResponse(res, { user: userWithoutPassword });
     } catch (error) {
-      return errorResponse(res, error.message);
+      return errorResponse(res, error.message || "Server error");
     }
   }
 

@@ -4,15 +4,17 @@ const Sequelize = require("sequelize");
 const DataTypes = Sequelize.DataTypes;
 
 module.exports = (sequelize) => {
+  // Import des modèles avec leurs définitions Sequelize
   const Category = require("./Category")(sequelize, DataTypes);
   const SkillsList = require("./SkillsList")(sequelize, DataTypes);
   const UserAccount = require("./UserAccount")(sequelize, DataTypes);
   const StakeHolder = require("./StakeHolder")(sequelize, DataTypes);
   const ConstructionSite = require("./ConstructionSite")(sequelize, DataTypes);
   const Periodicity = require("./Periodicity")(sequelize, DataTypes);
-  const Geolocation = require("./AbstractGeolocation")(sequelize, DataTypes);
 
-  // Associations
+  // NOTE: AbstractGeolocation n'est pas un modèle Sequelize, donc on ne l'instancie pas ici
+
+  // Associations entre modèles
   Category.hasMany(SkillsList, { foreignKey: "CategoryId" });
   SkillsList.belongsTo(Category, { foreignKey: "CategoryId" });
 
@@ -49,6 +51,7 @@ module.exports = (sequelize) => {
     as: "site",
   });
 
+  // Retourne un objet contenant toutes les définitions de modèles
   return {
     sequelize,
     Category,
@@ -57,6 +60,5 @@ module.exports = (sequelize) => {
     StakeHolder,
     ConstructionSite,
     Periodicity,
-    Geolocation,
   };
 };
