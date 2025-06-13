@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { useAtom } from "jotai";
@@ -16,17 +16,18 @@ import { apiUrl } from "../config";
 function App() {
   const [, setUser] = useAtom(userAtom);
   const navigate = useNavigate();
+  const token = Cookies.get("token");
+  const [loading, setLoading] = useState(true);
 
   // Fonction getDataUser mémorisée avec useCallback
   const getDataUser = useCallback(async () => {
-    const token = Cookies.get("token");
-
     if (!token) {
       setUser({
         id: 0,
         email: "",
         user_type: "",
       });
+      setLoading(false); // fin du chargement
       return;
     }
 
@@ -43,11 +44,11 @@ function App() {
       const data = await response.json();
       console.log("data", data);
 
-      if (response.ok && data.user) {
+      if (response.ok && data.data && data.data.user) {
         setUser({
-          id: data.user.id, // data.user.id (corrigé)
-          email: data.user.email, // data.user.email (corrigé)
-          user_type: data.user.user_type, // data.user.user_type (corrigé)
+          id: data.data.user.id,
+          email: data.data.user.email,
+          user_type: data.data.user.user_type,
         });
       } else {
         setUser({
@@ -64,13 +65,35 @@ function App() {
         user_type: "",
       });
       navigate("/unauthorized");
+    } finally {
+      // Pour s'assurer que le chargement dure au moins 3 secondes
+      setTimeout(() => {
+        setLoading(false);
+      }, 500);
     }
-  }, [navigate, setUser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, setUser, navigate]);
 
-  // Exécution au montage (et au refresh)
   useEffect(() => {
     getDataUser();
   }, [getDataUser]);
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          fontSize: "24px",
+          fontWeight: "bold",
+        }}
+      >
+        Chargement...
+      </div>
+    );
+  }
 
   return (
     <Routes>
