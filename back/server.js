@@ -1,6 +1,6 @@
 const express = require("express");
 const db = require("./config/db");
-const defineModels = require("./models"); // ton index.js des modèles
+const defineModels = require("./models");
 const routes = require("./routes");
 
 const app = express();
