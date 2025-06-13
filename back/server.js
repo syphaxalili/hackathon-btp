@@ -1,6 +1,6 @@
-require("dotenv").config();
 const express = require("express");
-const db = require("./config/db"); // <-- ton fichier config/db.js
+const db = require("./config/db");
+const defineModels = require("./models"); // ton index.js des modèles
 const routes = require("./routes");
 
 const app = express();
@@ -9,7 +9,9 @@ const PORT = 5500;
 (async () => {
   try {
     await db.initialize();
-    const sequelize = db.getSequelize(); 
+    const sequelize = db.getSequelize();
+
+    defineModels(sequelize);
 
     await sequelize.sync({ alter: true });
 
@@ -26,3 +28,5 @@ const PORT = 5500;
     process.exit(1);
   }
 })();
+
+ 
