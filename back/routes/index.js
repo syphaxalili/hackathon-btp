@@ -3,7 +3,6 @@ const router = express.Router();
 
 // Importer les routes
 const authRoutes = require("./auth.routes");
-const userRoutes = require("./user.routes");
 const skillsRoutes = require("./skills.routes");
 const categoriesRoutes = require("./categories.routes");
 const constructionSitesRoutes = require("./construction-sites.routes");
@@ -13,7 +12,6 @@ const statsRoutes = require("./stats.routes");
 
 // Définir les routes
 router.use("/auth", authRoutes);
-router.use("/users", userRoutes);
 router.use("/skills", skillsRoutes);
 router.use("/categories", categoriesRoutes);
 router.use("/construction-sites", constructionSitesRoutes);
