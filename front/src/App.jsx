@@ -71,7 +71,6 @@ function App() {
         setLoading(false);
       }, 500);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, setUser, navigate]);
 
   useEffect(() => {
