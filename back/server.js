@@ -1,24 +1,32 @@
-const express = require("express");
-const db = require("./config/db");
-const defineModels = require("./models"); // ton index.js des modèles
+
 const routes = require("./routes");
+require("dotenv").config();
+const express = require("express");
+const db = require("./config/db"); 
+const defineModels = require("./models"); // <- initialise les modèles
 
 const app = express();
 const PORT = 5500;
 
 (async () => {
   try {
-    await db.initialize();
-    const sequelize = db.getSequelize();
+    await db.initialize(); // Crée la BDD et connecte Sequelize
+    const sequelize = db.getSequelize(); // récupère instance Sequelize
 
-    defineModels(sequelize);
-
+    const models = defineModels(sequelize); // initialise tes modèles ici
     await sequelize.sync({ alter: true });
-
     console.log("✅ Base synchronisée.");
 
+    // Middleware JSON
     app.use(express.json());
-    app.use("/api", routes);
+
+    // Injecte les modèles dans les routes (via req.models par exemple)
+    app.use((req, res, next) => {
+      req.models = models;
+      next();
+    });
+
+      app.use("/", routes);
 
     app.listen(PORT, () => {
       console.log(`🚀 Listening on port ${PORT}`);
@@ -28,5 +36,3 @@ const PORT = 5500;
     process.exit(1);
   }
 })();
-
- 

@@ -1,18 +1,20 @@
 const BaseController = require("./baseController");
-const { UserAccountModel, SkillsListModel } = require("../models");
+const { SkillsListModel } = require("../models");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-class UserAccountController extends BaseController {
-  // Create a new user account
+class UserAccountController {
+
   static async create(req, res) {
     try {
+      const { UserAccount } = req.models;
+
       const { email, password, user_type, firstname, lastname, ...userData } =
         req.body;
 
       // Validate required fields
       if (!email || !password || !user_type || !firstname || !lastname) {
-        return this.errorResponse(
+        return BaseController.errorResponse(
           res,
           "Email, password, user_type, firstname, and lastname are required",
           400
@@ -22,48 +24,60 @@ class UserAccountController extends BaseController {
       // Hash the password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      const userId = await UserAccountModel.create({
-        email,
-        hashedPassword,
-        user_type,
-        firstname,
-        lastname,
+      const newUser = await UserAccount.create({
+        email: email,
+        password: hashedPassword,
+        user_type: user_type,
+        first_name: firstname,
+        last_name: lastname,
         ...userData,
       });
 
-      const newUser = await UserAccountModel.findById(userId);
+      // Supprime le champ password du retour
+      const userJson = newUser.toJSON();
+      delete userJson.password;
 
-      // Remove sensitive data from response
-      delete newUser.password_hash;
-
-      return this.successResponse(res, newUser, 201);
+      return BaseController.successResponse(res, userJson, 201);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return BaseController.errorResponse(res, error.message);
     }
   }
 
   // Login a user and return a JWT token in a cookie
   static async login(req, res) {
+    const { UserAccount } = req.models;
+
     try {
       const { email, password } = req.body;
 
       if (!email || !password) {
-        return this.errorResponse(res, "Email and password are required", 400);
+        return BaseController.errorResponse(
+          res,
+          "Email and password are required",
+          400
+        );
       }
 
-      // 1. Vérifie si l'utilisateur existe
-      const user = await UserAccountModel.findOne({ where: { email } });
+      const user = await UserAccount.findOne({ where: { email } });
+      console.log("User found:", user);
+
       if (!user) {
-        return this.errorResponse(res, "Invalid email or password", 401);
+        return BaseController.errorResponse(
+          res,
+          "Invalid email or password",
+          401
+        );
       }
 
-      // 2. Compare le mot de passe
-      const isMatch = await bcrypt.compare(password, user.password_hash);
+      const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return this.errorResponse(res, "Invalid email or password", 401);
+        return BaseController.errorResponse(
+          res,
+          "Invalid email or password",
+          401
+        );
       }
 
-      // 3. Génère le token JWT
       const payload = {
         id: user.id,
         email: user.email,
@@ -73,18 +87,17 @@ class UserAccountController extends BaseController {
         expiresIn: "1d",
       });
 
-      // 4. Supprime le mot de passe de l'objet renvoyé
-      delete user.password_hash;
+      const userJson = user.toJSON();
+      delete userJson.password;
 
-      // 5. Envoie le token dans un cookie sécurisé
       res.cookie("token", token, {
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000, // 1 jour
+        maxAge: 24 * 60 * 60 * 1000,
       });
 
-      return this.successResponse(res, { user, token });
+      return BaseController.successResponse(res, { user: userJson, token });
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return BaseController.errorResponse(res, error.message);
     }
   }
 
@@ -187,16 +200,16 @@ class UserAccountController extends BaseController {
     try {
       // L'utilisateur est déjà disponible dans req.user grâce au middleware d'authentification
       const user = req.user;
-      
+
       if (!user) {
-        return this.errorResponse(res, 'User not authenticated', 401);
+        return this.errorResponse(res, "User not authenticated", 401);
       }
 
       // Récupérer les informations complètes de l'utilisateur
       const userData = await UserAccountModel.findById(user.id);
-      
+
       if (!userData) {
-        return this.notFoundResponse(res, 'User');
+        return this.notFoundResponse(res, "User");
       }
 
       // Supprimer les données sensibles avant l'envoi
