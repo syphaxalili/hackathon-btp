@@ -7,7 +7,7 @@ class UserAccountController {
   // Create a new user account
   static async create(req, res) {
     try {
-      const { UserAccount } = req.models; 
+      const { UserAccount } = req.models;
 
       const { email, password, user_type, firstname, lastname, ...userData } =
         req.body;
@@ -25,9 +25,9 @@ class UserAccountController {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const newUser = await UserAccount.create({
-        email,
+        email: email,
         password: hashedPassword,
-        user_type,
+        user_type: user_type,
         first_name: firstname,
         last_name: lastname,
         ...userData,
@@ -45,26 +45,39 @@ class UserAccountController {
 
   // Login a user and return a JWT token in a cookie
   static async login(req, res) {
+    const { UserAccount } = req.models;
+
     try {
       const { email, password } = req.body;
 
       if (!email || !password) {
-        return this.errorResponse(res, "Email and password are required", 400);
+        return BaseController.errorResponse(
+          res,
+          "Email and password are required",
+          400
+        );
       }
 
-      // 1. Vérifie si l'utilisateur existe
-      const user = await UserAccountModel.findOne({ where: { email } });
+      const user = await UserAccount.findOne({ where: { email } });
+      console.log("User found:", user);
+
       if (!user) {
-        return this.errorResponse(res, "Invalid email or password", 401);
+        return BaseController.errorResponse(
+          res,
+          "Invalid email or password",
+          401
+        );
       }
 
-      // 2. Compare le mot de passe
-      const isMatch = await bcrypt.compare(password, user.password_hash);
+      const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return this.errorResponse(res, "Invalid email or password", 401);
+        return BaseController.errorResponse(
+          res,
+          "Invalid email or password",
+          401
+        );
       }
 
-      // 3. Génère le token JWT
       const payload = {
         id: user.id,
         email: user.email,
@@ -74,18 +87,17 @@ class UserAccountController {
         expiresIn: "1d",
       });
 
-      // 4. Supprime le mot de passe de l'objet renvoyé
-      delete user.password_hash;
+      const userJson = user.toJSON();
+      delete userJson.password;
 
-      // 5. Envoie le token dans un cookie sécurisé
       res.cookie("token", token, {
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000, // 1 jour
+        maxAge: 24 * 60 * 60 * 1000,
       });
 
-      return this.successResponse(res, { user, token });
+      return BaseController.successResponse(res, { user: userJson, token });
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return BaseController.errorResponse(res, error.message);
     }
   }
 
