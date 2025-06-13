@@ -7,6 +7,8 @@ class UserAccountController {
   // Create a new user account
   static async create(req, res) {
     try {
+      const { UserAccount } = req.models; 
+
       const { email, password, user_type, firstname, lastname, ...userData } =
         req.body;
 
@@ -22,16 +24,18 @@ class UserAccountController {
       // Hash the password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      const userId = await UserAccountModel.create({
+      const newUser = await UserAccount.create({
         email,
-        hashedPassword,
+        password: hashedPassword,
         user_type,
-        firstname,
-        lastname,
+        first_name: firstname,
+        last_name: lastname,
         ...userData,
       });
 
-      const newUser = await UserAccountModel.findById(userId);
+      // Supprime le champ password du retour
+      const userJson = newUser.toJSON();
+      delete userJson.password;
 
       // Remove sensitive data from response
       delete newUser.password_hash;
@@ -187,14 +191,14 @@ class UserAccountController {
     try {
       // L'utilisateur est déjà disponible dans req.user grâce au middleware d'authentification
       const user = req.user;
-      
+
       if (!user) {
         return errorResponse(res, 'User not authenticated', 401);
       }
 
       // Récupérer les informations complètes de l'utilisateur
       const userData = await UserAccountModel.findById(user.id);
-      
+
       if (!userData) {
         return notFoundResponse(res, 'User');
       }
