@@ -5,6 +5,7 @@ import styled from "@emotion/styled";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { userAtom } from "../Atom/UserAtom";
+import { apiUrl } from "../../../config";
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -47,7 +48,7 @@ export default function Home() {
     e.preventDefault();
     setError(null);
     try {
-      const response = await fetch("http://localhost:5500/auth/login", {
+      const response = await fetch(`${apiUrl}/auth/login`, {
         method: "POST",
         credentials: "include",
         headers: {

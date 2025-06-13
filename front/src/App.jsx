@@ -1,5 +1,4 @@
-// App.jsx
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { useAtom } from "jotai";
@@ -10,54 +9,68 @@ import NotFound from "./components/Atom/NotFound";
 import Unauthorized from "./components/Atom/Unauthorized";
 import MainLayout from "./components/SideNavbar/MainLayout";
 import Page1 from "./components/Pages/Page1";
-import Page2 from "./components/Pages/Page2"; // Correction ici
+import Page2 from "./components/Pages/Page2";
 import { PrivateRoute } from "./components/Atom/PrivateRoute";
+import { apiUrl } from "../config";
 
 function App() {
-  const [user, setUser] = useAtom(userAtom);
+  const [, setUser] = useAtom(userAtom);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  // Fonction getDataUser mémorisée avec useCallback
+  const getDataUser = useCallback(async () => {
     const token = Cookies.get("token");
 
     if (!token) {
-      setUser({ id: 0, email: "", user_type: "", first_name: "", last_name: "" });
-      navigate("/");
+      setUser({
+        id: 0,
+        email: "",
+        user_type: "",
+      });
       return;
     }
 
-    if (!user?.id || user.id <= 0) {
-      const fetchUser = async () => {
-        try {
-          const response = await fetch("http://localhost:5500/auth/me", {
-            method: "GET",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          });
+    try {
+      const response = await fetch(`${apiUrl}/auth/me`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-          const data = await response.json();
-          if (response.ok && data.user) {
-            setUser({
-              id: data.user.id,
-              email: data.user.email,
-              user_type: data.user.user_type,
-              first_name: data.user.first_name,
-              last_name: data.user.last_name,
-            });
-          } else {
-            navigate("/");
-          }
-        } catch {
-          navigate("/");
-        }
-      };
+      const data = await response.json();
+      console.log("data", data);
 
-      fetchUser();
+      if (response.ok && data.user) {
+        setUser({
+          id: data.user.id, // data.user.id (corrigé)
+          email: data.user.email, // data.user.email (corrigé)
+          user_type: data.user.user_type, // data.user.user_type (corrigé)
+        });
+      } else {
+        setUser({
+          id: 0,
+          email: "",
+          user_type: "",
+        });
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération utilisateur :", error);
+      setUser({
+        id: 0,
+        email: "",
+        user_type: "",
+      });
+      navigate("/unauthorized");
     }
-  }, [user, navigate, setUser]); // Ajout des dépendances
+  }, [navigate, setUser]);
+
+  // Exécution au montage (et au refresh)
+  useEffect(() => {
+    getDataUser();
+  }, [getDataUser]);
 
   return (
     <Routes>
