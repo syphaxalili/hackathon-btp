@@ -81,7 +81,7 @@ class StatsController extends BaseController {
   }
 
   // Get worker statistics
-  static async getWorkerStats(req, res) {
+  static async getWorkersStats(req, res) {
     try {
       const workers = await UserAccountModel.findByType('worker');
       

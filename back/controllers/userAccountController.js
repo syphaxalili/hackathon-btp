@@ -182,6 +182,32 @@ class UserAccountController extends BaseController {
     }
   }
 
+  // Get current user profile
+  static async getMe(req, res) {
+    try {
+      // L'utilisateur est déjà disponible dans req.user grâce au middleware d'authentification
+      const user = req.user;
+      
+      if (!user) {
+        return this.errorResponse(res, 'User not authenticated', 401);
+      }
+
+      // Récupérer les informations complètes de l'utilisateur
+      const userData = await UserAccountModel.findById(user.id);
+      
+      if (!userData) {
+        return this.notFoundResponse(res, 'User');
+      }
+
+      // Supprimer les données sensibles avant l'envoi
+      const { password_hash, ...userWithoutPassword } = userData;
+
+      return this.successResponse(res, userWithoutPassword);
+    } catch (error) {
+      return this.errorResponse(res, error.message);
+    }
+  }
+
   // Add a skill to a user
   static async addSkill(req, res) {
     try {

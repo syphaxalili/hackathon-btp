@@ -177,6 +177,25 @@ class ConstructionSiteController extends BaseController {
     }
   }
 
+  
+  // Get all workers from a construction site
+  static async getWorkers(req, res) {
+    try {
+      const { siteId } = req.params;
+      
+      // Check if site exists
+      const site = await ConstructionSiteModel.findById(siteId);
+      if (!site) {
+        return this.notFoundResponse(res, 'Construction site');
+      }
+      
+      const workers = await ConstructionSiteModel.getWorkers(siteId);
+      return this.successResponse(res, workers);
+    } catch (error) {
+      return this.errorResponse(res, error.message);
+    }
+  }
+
   // Assign a worker to a construction site
   static async assignWorker(req, res) {
     try {
