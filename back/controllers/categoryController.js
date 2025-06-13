@@ -1,32 +1,33 @@
-const BaseController = require('./baseController');
-const { CategoryModel } = require('../models');
+const { successResponse, errorResponse, notFoundResponse } = require('./utils');
 
-class CategoryController extends BaseController {
+class CategoryController {
   // Create a new category
   static async create(req, res) {
     try {
       const { name } = req.body;
+      const { Category } = req.models;
       
       if (!name) {
-        return this.errorResponse(res, 'Name is required', 400);
+        return errorResponse(res, 'Name is required', 400);
       }
       
-      const categoryId = await CategoryModel.create(name);
-      const newCategory = await CategoryModel.findById(categoryId);
+      const categoryId = await Category.create(name);
+      const newCategory = await Category.findById(categoryId);
       
-      return this.successResponse(res, newCategory, 201);
+      return successResponse(res, newCategory, 201);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
   // Get all categories
   static async getAll(req, res) {
     try {
-      const categories = await CategoryModel.findAll();
-      return this.successResponse(res, categories);
+      const { Category } = req.models;
+      const categories = await Category.findAll();
+      return successResponse(res, categories);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -34,15 +35,16 @@ class CategoryController extends BaseController {
   static async getById(req, res) {
     try {
       const { id } = req.params;
-      const category = await CategoryModel.findById(id);
+      const { Category } = req.models;
+      const category = await Category.findById(id);
       
       if (!category) {
-        return this.notFoundResponse(res, 'Category');
+        return notFoundResponse(res, 'Category');
       }
       
-      return this.successResponse(res, category);
+      return successResponse(res, category);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -51,23 +53,24 @@ class CategoryController extends BaseController {
     try {
       const { id } = req.params;
       const { name } = req.body;
+      const { Category } = req.models;
       
       if (!name) {
-        return this.errorResponse(res, 'Name is required', 400);
+        return errorResponse(res, 'Name is required', 400);
       }
       
-      const category = await CategoryModel.findById(id);
+      const category = await Category.findById(id);
       
       if (!category) {
-        return this.notFoundResponse(res, 'Category');
+        return notFoundResponse(res, 'Category');
       }
       
-      await CategoryModel.update(id, name);
-      const updatedCategory = await CategoryModel.findById(id);
+      await Category.update(id, name);
+      const updatedCategory = await Category.findById(id);
       
-      return this.successResponse(res, updatedCategory);
+      return successResponse(res, updatedCategory);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -75,16 +78,17 @@ class CategoryController extends BaseController {
   static async delete(req, res) {
     try {
       const { id } = req.params;
-      const category = await CategoryModel.findById(id);
+      const { Category } = req.models;
+      const category = await Category.findById(id);
       
       if (!category) {
-        return this.notFoundResponse(res, 'Category');
+        return notFoundResponse(res, 'Category');
       }
       
-      await CategoryModel.delete(id);
-      return this.successResponse(res, { id }, 204);
+      await Category.delete(id);
+      return successResponse(res, { id }, 204);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 }

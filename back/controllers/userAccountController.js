@@ -1,5 +1,4 @@
-const BaseController = require("./baseController");
-const { SkillsListModel } = require("../models");
+const { successResponse, errorResponse, notFoundResponse } = require("./utils");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -11,16 +10,14 @@ class UserAccountController {
       const { email, password, user_type, firstname, lastname, ...userData } =
         req.body;
 
-      // Validate required fields
       if (!email || !password || !user_type || !firstname || !lastname) {
-        return BaseController.errorResponse(
+        return errorResponse(
           res,
           "Email, password, user_type, firstname, and lastname are required",
           400
         );
       }
 
-      // Hash the password
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const newUser = await UserAccount.create({
@@ -32,17 +29,17 @@ class UserAccountController {
         ...userData,
       });
 
-      // Supprime le champ password du retour
       const userJson = newUser.toJSON();
       delete userJson.password;
 
-      return BaseController.successResponse(res, userJson, 201);
+      delete newUser.password_hash;
+
+      return successResponse(res, newUser, 201);
     } catch (error) {
-      return BaseController.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
-  // Login a user and return a JWT token in a cookie
   static async login(req, res) {
     const { UserAccount } = req.models;
 
@@ -50,31 +47,17 @@ class UserAccountController {
       const { email, password } = req.body;
 
       if (!email || !password) {
-        return BaseController.errorResponse(
-          res,
-          "Email and password are required",
-          400
-        );
+        return errorResponse(res, "Email and password are required", 400);
       }
 
       const user = await UserAccount.findOne({ where: { email } });
-      console.log("User found:", user);
-
       if (!user) {
-        return BaseController.errorResponse(
-          res,
-          "Invalid email or password",
-          401
-        );
+        return errorResponse(res, "Invalid email or password", 401);
       }
 
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return BaseController.errorResponse(
-          res,
-          "Invalid email or password",
-          401
-        );
+        return errorResponse(res, "Invalid email or password", 401);
       }
 
       const payload = {
@@ -94,22 +77,23 @@ class UserAccountController {
         maxAge: 24 * 60 * 60 * 1000,
       });
 
-      return BaseController.successResponse(res, { user: userJson, token });
+      return successResponse(res, { user, token });
     } catch (error) {
-      return BaseController.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
   // Get all users (with optional filtering by type)
   static async getAll(req, res) {
     try {
+      const { UserAccount } = req.models;
       const { type } = req.query;
       let users;
 
       if (type) {
-        users = await UserAccountModel.findByType(type);
+        users = await UserAccount.findByType(type);
       } else {
-        users = await UserAccountModel.findAll();
+        users = await UserAccount.findAll();
       }
 
       // Remove sensitive data from response
@@ -118,9 +102,9 @@ class UserAccountController {
         return userWithoutPassword;
       });
 
-      return this.successResponse(res, users);
+      return successResponse(res, users);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -128,18 +112,19 @@ class UserAccountController {
   static async getById(req, res) {
     try {
       const { id } = req.params;
-      const user = await UserAccountModel.findById(id);
+      const { UserAccount } = req.models;
+      const user = await UserAccount.findById(id);
 
       if (!user) {
-        return this.notFoundResponse(res, "User");
+        return notFoundResponse(res, "User");
       }
 
       // Remove sensitive data from response
       const { password_hash, ...userWithoutPassword } = user;
 
-      return this.successResponse(res, userWithoutPassword);
+      return successResponse(res, userWithoutPassword);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -148,32 +133,33 @@ class UserAccountController {
     try {
       const { id } = req.params;
       const { password, ...updateData } = req.body;
+      const { UserAccount } = req.models;
 
       // Check if user exists
-      const user = await UserAccountModel.findById(id);
+      const user = await UserAccount.findById(id);
       if (!user) {
-        return this.notFoundResponse(res, "User");
+        return notFoundResponse(res, "User");
       }
 
       // If password is being updated, hash it
       if (password) {
         const hashedPassword = await bcrypt.hash(password, 10);
-        await UserAccountModel.updatePassword(id, hashedPassword);
+        await UserAccount.updatePassword(id, hashedPassword);
       }
 
       // Update other user data if provided
       if (Object.keys(updateData).length > 0) {
-        await UserAccountModel.update(id, updateData);
+        await UserAccount.update(id, updateData);
       }
-
-      const updatedUser = await UserAccountModel.findById(id);
+      
+      const updatedUser = await UserAccount.findById(id);
 
       // Remove sensitive data from response
       delete updatedUser.password_hash;
 
-      return this.successResponse(res, updatedUser);
+      return successResponse(res, updatedUser);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -184,13 +170,14 @@ class UserAccountController {
       const user = await UserAccountModel.findById(id);
 
       if (!user) {
-        return this.notFoundResponse(res, "User");
+        return notFoundResponse(res, "User");
       }
 
-      await UserAccountModel.delete(id);
-      return this.successResponse(res, { id }, 204);
+      const { UserAccount } = req.models;
+      await UserAccount.delete(id);
+      return successResponse(res, { id }, 204);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -200,15 +187,16 @@ class UserAccountController {
       // Vérifie que l'utilisateur a été injecté par le middleware d'auth
       const user = req.user;
 
-      if (!user || !user.id) {
-        return this.errorResponse(res, "User not authenticated", 401);
+      if (!user) {
+        return errorResponse(res, 'User not authenticated', 401);
       }
 
-      // Récupère l'utilisateur dans la base de données
-      const userData = await req.models.UserAccount.findByPk(user.id);
+      // Récupérer les informations complètes de l'utilisateur
+      const { UserAccount } = req.models;
+      const userData = await UserAccount.findById(user.id);
 
       if (!userData) {
-        return this.notFoundResponse(res, "User");
+        return notFoundResponse(res, 'User');
       }
 
       // Supprime les champs sensibles
@@ -216,10 +204,9 @@ class UserAccountController {
         plain: true,
       });
 
-      // Renvoie les données utilisateur dans un objet "user"
-      return this.successResponse(res, { user: userWithoutPassword });
+      return successResponse(res, userWithoutPassword);
     } catch (error) {
-      return this.errorResponse(res, error.message || "Server error");
+      return errorResponse(res, error.message);
     }
   }
 
@@ -231,13 +218,13 @@ class UserAccountController {
       // Check if user exists
       const user = await UserAccountModel.findById(userId);
       if (!user) {
-        return this.notFoundResponse(res, "User");
+        return notFoundResponse(res, "User");
       }
 
       // Check if skill exists
       const skill = await SkillsListModel.findById(skillId);
       if (!skill) {
-        return this.notFoundResponse(res, "Skill");
+        return notFoundResponse(res, "Skill");
       }
 
       await UserAccountModel.addSkill(userId, skillId);
@@ -246,9 +233,9 @@ class UserAccountController {
       // Remove sensitive data from response
       delete updatedUser.password_hash;
 
-      return this.successResponse(res, updatedUser);
+      return successResponse(res, updatedUser);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -260,7 +247,7 @@ class UserAccountController {
       // Check if user exists
       const user = await UserAccountModel.findById(userId);
       if (!user) {
-        return this.notFoundResponse(res, "User");
+        return notFoundResponse(res, "User");
       }
 
       await UserAccountModel.removeSkill(userId, skillId);
@@ -269,9 +256,9 @@ class UserAccountController {
       // Remove sensitive data from response
       delete updatedUser.password_hash;
 
-      return this.successResponse(res, updatedUser);
+      return successResponse(res, updatedUser);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -283,13 +270,13 @@ class UserAccountController {
       // Check if user exists
       const user = await UserAccountModel.findById(userId);
       if (!user) {
-        return this.notFoundResponse(res, "User");
+        return notFoundResponse(res, "User");
       }
 
       const skills = await UserAccountModel.getSkills(userId);
-      return this.successResponse(res, skills);
+      return successResponse(res, skills);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 }
