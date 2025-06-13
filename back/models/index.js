@@ -10,6 +10,7 @@ module.exports = (sequelize) => {
   const StakeHolder = require("./StakeHolder")(sequelize, DataTypes);
   const ConstructionSite = require("./ConstructionSite")(sequelize, DataTypes);
   const Periodicity = require("./Periodicity")(sequelize, DataTypes);
+  const Geolocation = require("./AbstractGeolocation")(sequelize, DataTypes);
 
   // Associations
   Category.hasMany(SkillsList, { foreignKey: "CategoryId" });
@@ -56,5 +57,6 @@ module.exports = (sequelize) => {
     StakeHolder,
     ConstructionSite,
     Periodicity,
+    Geolocation,
   };
 };

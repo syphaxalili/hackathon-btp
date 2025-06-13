@@ -1,9 +1,9 @@
-
-const routes = require("./routes");
 require("dotenv").config();
 const express = require("express");
 const db = require("./config/db"); 
 const defineModels = require("./models"); // <- initialise les modèles
+
+const routes = require("./routes");
 
 const app = express();
 const PORT = 5500;

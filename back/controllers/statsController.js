@@ -1,24 +1,78 @@
-const BaseController = require('./baseController');
-const { StatsModel, ConstructionSiteModel, UserAccountModel } = require('../models');
+const { successResponse, errorResponse } = require('./utils');
+const { sequelize } = require('../models');
 
-class StatsController extends BaseController {
-  // Get dashboard statistics
+class StatsController {
   static async getDashboardStats(req, res) {
     try {
-      const dashboardStats = await StatsModel.getDashboardStats();
-      return this.successResponse(res, dashboardStats);
+      const { ConstructionSite, UserAccount, StakeHolder } = req.models;
+      const totalSites = await ConstructionSite.count();
+      const totalWorkers = await UserAccount.count({ where: { user_type: 'ST' } });
+      const totalStakeholders = await StakeHolder.count();
+      
+      const sitesByStatus = await ConstructionSite.findAll({
+        attributes: ['status_construction', [sequelize.fn('COUNT', sequelize.col('id')), 'count']],
+        group: ['status_construction']
+      });
+      
+      const dashboardStats = {
+        totalSites,
+        totalWorkers,
+        totalStakeholders,
+        sitesByStatus: sitesByStatus.reduce((acc, item) => {
+          acc[item.status_construction] = item.get('count');
+          return acc;
+        }, {})
+      };
+      
+      return successResponse(res, dashboardStats);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
   // Get worker utilization statistics
   static async getWorkerUtilization(req, res) {
     try {
-      const utilizationStats = await StatsModel.getWorkerUtilization();
-      return this.successResponse(res, utilizationStats);
+      const { ConstructionSite, UserAccount } = req.models;
+      const totalWorkers = await UserAccount.count({ where: { user_type: 'ST' } });
+      const assignedWorkers = await UserAccount.count({
+        where: { user_type: 'ST' },
+        include: [{
+          model: ConstructionSite,
+          as: 'sites',
+          required: true
+        }]
+      });
+      
+      const sites = await ConstructionSite.findAll({
+        include: [{
+          model: UserAccount,
+          as: 'workers',
+          attributes: []
+        }],
+        attributes: [
+          'id',
+          'name',
+          [sequelize.fn('COUNT', sequelize.col('workers.id')), 'workerCount']
+        ],
+        group: ['ConstructionSite.id']
+      });
+      
+      const utilizationStats = {
+        totalWorkers,
+        assignedWorkers,
+        availableWorkers: totalWorkers - assignedWorkers,
+        utilizationRate: totalWorkers > 0 ? (assignedWorkers / totalWorkers * 100).toFixed(2) : 0,
+        sites: sites.map(site => ({
+          siteId: site.id,
+          siteName: site.name,
+          workerCount: site.get('workerCount')
+        }))
+      };
+      
+      return successResponse(res, utilizationStats);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -26,64 +80,126 @@ class StatsController extends BaseController {
   static async getSiteStats(req, res) {
     try {
       const { status } = req.query;
-      let sites;
+      const { ConstructionSite, StakeHolder, UserAccount } = req.models;
       
+      // Options de base pour la requête
+      const queryOptions = {
+        include: [
+          {
+            model: StakeHolder,
+            as: 'stakeholder',
+            attributes: ['id', 'name']
+          },
+          {
+            model: UserAccount,
+            as: 'workers',
+            attributes: ['id'],
+            through: { attributes: [] },
+            required: false
+          }
+        ],
+        attributes: [
+          'id',
+          'name',
+          'status_construction',
+          'st_Id',
+          'n_worker',
+          [sequelize.fn('COUNT', sequelize.col('workers.id')), 'assignedWorkers']
+        ],
+        group: ['ConstructionSite.id', 'stakeholder.id']
+      };
+      
+      // Ajouter le filtre de statut si spécifié
       if (status) {
-        sites = await ConstructionSiteModel.findByStatus(status);
-      } else {
-        sites = await ConstructionSiteModel.findAll();
+        queryOptions.where = { status_construction: status };
       }
       
+      const sites = await ConstructionSite.findAll(queryOptions);
+      
+      // Préparer les statistiques
       const stats = {
         total: sites.length,
         byStatus: {},
         byStakeholder: {},
-        upcoming: 0,
-        inProgress: 0,
-        completed: 0,
-        delayed: 0
+        workerUtilization: {
+          totalWorkersNeeded: 0,
+          totalWorkersAssigned: 0,
+          utilizationRate: 0
+        },
+        statusDistribution: {
+          BR: 0, // Brouillon
+          VA: 0, // Validé
+          EC: 0, // En cours
+          CL: 0, // Clôturé
+          AN: 0  // Annulé
+        },
+        sites: []
       };
       
-      // Count by status
-      sites.forEach(site => {
-        // Initialize status count if not exists
-        if (!stats.byStatus[site.status]) {
-          stats.byStatus[site.status] = 0;
-        }
-        stats.byStatus[site.status]++;
+      // Traiter chaque site
+      for (const site of sites) {
+        const siteData = site.get({ plain: true });
+        const status = siteData.status_construction;
+        const stakeholderId = siteData.st_Id;
+        const workersNeeded = siteData.n_worker || 0;
+        const workersAssigned = parseInt(siteData.assignedWorkers) || 0;
         
-        // Count by stakeholder
-        if (!stats.byStakeholder[site.stakeholder_id]) {
-          stats.byStakeholder[site.stakeholder_id] = 0;
-        }
-        stats.byStakeholder[site.stakeholder_id]++;
+        // Mettre à jour les compteurs par statut
+        stats.statusDistribution[status] = (stats.statusDistribution[status] || 0) + 1;
         
-        // Count by timeline
-        const today = new Date();
-        const startDate = new Date(site.start_date);
-        const endDate = site.end_date ? new Date(site.end_date) : null;
-        
-        if (startDate > today) {
-          stats.upcoming++;
-        } else if (endDate && endDate < today) {
-          stats.completed++;
-        } else if (endDate && endDate < today) {
-          stats.delayed++;
-        } else {
-          stats.inProgress++;
+        // Mettre à jour les compteurs par maître d'ouvrage
+        if (stakeholderId) {
+          if (!stats.byStakeholder[stakeholderId]) {
+            stats.byStakeholder[stakeholderId] = {
+              name: siteData.stakeholder?.name || 'Inconnu',
+              count: 0,
+              workersNeeded: 0,
+              workersAssigned: 0
+            };
+          }
+          stats.byStakeholder[stakeholderId].count++;
+          stats.byStakeholder[stakeholderId].workersNeeded += workersNeeded;
+          stats.byStakeholder[stakeholderId].workersAssigned += workersAssigned;
         }
-      });
+        
+        // Mettre à jour les statistiques d'utilisation des travailleurs
+        stats.workerUtilization.totalWorkersNeeded += workersNeeded;
+        stats.workerUtilization.totalWorkersAssigned += workersAssigned;
+        
+        // Ajouter les détails du site
+        stats.sites.push({
+          id: siteData.id,
+          name: siteData.name,
+          status,
+          stakeholder: siteData.stakeholder?.name || 'Inconnu',
+          workers: {
+            needed: workersNeeded,
+            assigned: workersAssigned,
+            utilization: workersNeeded > 0 ? 
+              Math.round((workersAssigned / workersNeeded) * 100) : 0
+          }
+        });
+      }
       
-      return this.successResponse(res, stats);
+      // Calculer le taux d'utilisation global des travailleurs
+      if (stats.workerUtilization.totalWorkersNeeded > 0) {
+        stats.workerUtilization.utilizationRate = Math.round(
+          (stats.workerUtilization.totalWorkersAssigned / stats.workerUtilization.totalWorkersNeeded) * 100
+        );
+      }
+      
+      return successResponse(res, stats);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      console.error('Error in getSiteStats:', error);
+      return errorResponse(res, error.message);
     }
   }
 
   // Get worker statistics
   static async getWorkersStats(req, res) {
     try {
-      const workers = await UserAccountModel.findByType('worker');
+      const { UserAccount, ConstructionSite } = req.models;
+      const workers = await UserAccount.findByType('worker');
       
       const stats = {
         total: workers.length,
@@ -101,7 +217,7 @@ class StatsController extends BaseController {
       // Get worker assignments
       const assignments = await Promise.all(
         workers.map(worker => 
-          ConstructionSiteModel.getWorkerCount(worker.id)
+          ConstructionSite.getWorkerCount(worker.id)
         )
       );
       
@@ -139,20 +255,9 @@ class StatsController extends BaseController {
         }
       });
       
-      return this.successResponse(res, stats);
+      return successResponse(res, stats);
     } catch (error) {
-      return this.errorResponse(res, error.message);
-    }
-  }
-
-  // Get stakeholder statistics
-  static async getStakeholderStats(req, res) {
-    try {
-      const { StatsModel } = require('../models');
-      const stats = await StatsModel.getStakeholderStats();
-      return this.successResponse(res, stats);
-    } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 }

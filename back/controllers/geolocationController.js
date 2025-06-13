@@ -1,15 +1,15 @@
-const BaseController = require('./baseController');
-const { GeolocationModel } = require('../models');
+const { successResponse, errorResponse, notFoundResponse } = require('./utils');
 
-class GeolocationController extends BaseController {
+class GeolocationController {
   // Create a new geolocation
   static async create(req, res) {
     try {
-      const geolocationId = await GeolocationModel.create(req.body);
-      const newGeolocation = await GeolocationModel.findById(geolocationId);
-      return this.successResponse(res, newGeolocation, 201);
+      const { Geolocation } = req.models;
+      const geolocationId = await Geolocation.create(req.body);
+      const newGeolocation = await Geolocation.findById(geolocationId);
+      return successResponse(res, newGeolocation, 201);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -17,15 +17,16 @@ class GeolocationController extends BaseController {
   static async getById(req, res) {
     try {
       const { id } = req.params;
-      const geolocation = await GeolocationModel.findById(id);
+      const { Geolocation } = req.models;
+      const geolocation = await Geolocation.findById(id);
       
       if (!geolocation) {
-        return this.notFoundResponse(res, 'Geolocation');
+        return notFoundResponse(res, 'Geolocation');
       }
       
-      return this.successResponse(res, geolocation);
+      return successResponse(res, geolocation);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -33,18 +34,19 @@ class GeolocationController extends BaseController {
   static async update(req, res) {
     try {
       const { id } = req.params;
-      const geolocation = await GeolocationModel.findById(id);
+      const { Geolocation } = req.models;
+      const geolocation = await Geolocation.findById(id);
       
       if (!geolocation) {
-        return this.notFoundResponse(res, 'Geolocation');
+        return notFoundResponse(res, 'Geolocation');
       }
       
-      await GeolocationModel.update(id, req.body);
-      const updatedGeolocation = await GeolocationModel.findById(id);
+      await Geolocation.update(id, req.body);
+      const updatedGeolocation = await Geolocation.findById(id);
       
-      return this.successResponse(res, updatedGeolocation);
+      return successResponse(res, updatedGeolocation);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -52,16 +54,17 @@ class GeolocationController extends BaseController {
   static async delete(req, res) {
     try {
       const { id } = req.params;
-      const geolocation = await GeolocationModel.findById(id);
+      const { Geolocation } = req.models;
+      const geolocation = await Geolocation.findById(id);
       
       if (!geolocation) {
-        return this.notFoundResponse(res, 'Geolocation');
+        return notFoundResponse(res, 'Geolocation');
       }
       
-      await GeolocationModel.delete(id);
-      return this.successResponse(res, { id }, 204);
+      await Geolocation.delete(id);
+      return successResponse(res, { id }, 204);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 }
