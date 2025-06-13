@@ -1,5 +1,4 @@
 const { successResponse, errorResponse, notFoundResponse } = require("./utils");
-const { UserAccountModel, SkillsListModel } = require("../models");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -56,7 +55,8 @@ class UserAccountController {
       }
 
       // 1. Vérifie si l'utilisateur existe
-      const user = await UserAccountModel.findOne({ where: { email } });
+      const { UserAccount } = req.models;
+      const user = await UserAccount.findOne({ where: { email } });
       if (!user) {
         return errorResponse(res, "Invalid email or password", 401);
       }
@@ -95,13 +95,14 @@ class UserAccountController {
   // Get all users (with optional filtering by type)
   static async getAll(req, res) {
     try {
+      const { UserAccount } = req.models;
       const { type } = req.query;
       let users;
 
       if (type) {
-        users = await UserAccountModel.findByType(type);
+        users = await UserAccount.findByType(type);
       } else {
-        users = await UserAccountModel.findAll();
+        users = await UserAccount.findAll();
       }
 
       // Remove sensitive data from response
@@ -120,7 +121,8 @@ class UserAccountController {
   static async getById(req, res) {
     try {
       const { id } = req.params;
-      const user = await UserAccountModel.findById(id);
+      const { UserAccount } = req.models;
+      const user = await UserAccount.findById(id);
 
       if (!user) {
         return notFoundResponse(res, "User");
@@ -140,9 +142,10 @@ class UserAccountController {
     try {
       const { id } = req.params;
       const { password, ...updateData } = req.body;
+      const { UserAccount } = req.models;
 
       // Check if user exists
-      const user = await UserAccountModel.findById(id);
+      const user = await UserAccount.findById(id);
       if (!user) {
         return notFoundResponse(res, "User");
       }
@@ -150,15 +153,15 @@ class UserAccountController {
       // If password is being updated, hash it
       if (password) {
         const hashedPassword = await bcrypt.hash(password, 10);
-        await UserAccountModel.updatePassword(id, hashedPassword);
+        await UserAccount.updatePassword(id, hashedPassword);
       }
 
       // Update other user data if provided
       if (Object.keys(updateData).length > 0) {
-        await UserAccountModel.update(id, updateData);
+        await UserAccount.update(id, updateData);
       }
-
-      const updatedUser = await UserAccountModel.findById(id);
+      
+      const updatedUser = await UserAccount.findById(id);
 
       // Remove sensitive data from response
       delete updatedUser.password_hash;
@@ -179,7 +182,8 @@ class UserAccountController {
         return notFoundResponse(res, "User");
       }
 
-      await UserAccountModel.delete(id);
+      const { UserAccount } = req.models;
+      await UserAccount.delete(id);
       return successResponse(res, { id }, 204);
     } catch (error) {
       return errorResponse(res, error.message);
@@ -197,7 +201,8 @@ class UserAccountController {
       }
 
       // Récupérer les informations complètes de l'utilisateur
-      const userData = await UserAccountModel.findById(user.id);
+      const { UserAccount } = req.models;
+      const userData = await UserAccount.findById(user.id);
 
       if (!userData) {
         return notFoundResponse(res, 'User');

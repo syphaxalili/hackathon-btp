@@ -1,10 +1,4 @@
 const { successResponse, errorResponse, notFoundResponse } = require('./utils');
-const { 
-  ConstructionSiteModel, 
-  UserAccountModel, 
-  SkillsListModel,
-  StakeHoldersModel 
-} = require('../models');
 
 class ConstructionSiteController {
   // Create a new construction site
@@ -20,20 +14,21 @@ class ConstructionSiteController {
         required_skills,
         ...otherData 
       } = req.body;
-      
+      const { ConstructionSite, StakeHolder, SkillsList } = req.models;
+
       // Validate required fields
       if (!name || !start_date || !stakeholder_id) {
         return errorResponse(res, 'Name, start_date, and stakeholder_id are required', 400);
       }
       
       // Check if stakeholder exists
-      const stakeholder = await StakeHoldersModel.findById(stakeholder_id);
+      const stakeholder = await StakeHolder.findById(stakeholder_id);
       if (!stakeholder) {
         return notFoundResponse(res, 'Stakeholder');
       }
       
       // Create construction site
-      const siteId = await ConstructionSiteModel.create({
+      const siteId = await ConstructionSite.create({
         name,
         description,
         start_date,
@@ -46,14 +41,14 @@ class ConstructionSiteController {
       // Add required skills if provided
       if (required_skills && Array.isArray(required_skills)) {
         for (const skillId of required_skills) {
-          const skill = await SkillsListModel.findById(skillId);
+          const skill = await SkillsList.findById(skillId);
           if (skill) {
-            await ConstructionSiteModel.addRequiredSkill(siteId, skillId);
+            await ConstructionSite.addRequiredSkill(siteId, skillId);
           }
         }
       }
       
-      const newSite = await ConstructionSiteModel.findById(siteId);
+      const newSite = await ConstructionSite.findById(siteId);
       return successResponse(res, newSite, 201);
     } catch (error) {
       return errorResponse(res, error.message);
@@ -64,14 +59,15 @@ class ConstructionSiteController {
   static async getAll(req, res) {
     try {
       const { status, stakeholder } = req.query;
+      const { ConstructionSite } = req.models;
       let sites;
       
       if (status) {
-        sites = await ConstructionSiteModel.findByStatus(status);
+        sites = await ConstructionSite.findByStatus(status);
       } else if (stakeholder) {
-        sites = await ConstructionSiteModel.findByStakeholder(stakeholder);
+        sites = await ConstructionSite.findByStakeholder(stakeholder);
       } else {
-        sites = await ConstructionSiteModel.findAll();
+        sites = await ConstructionSite.findAll();
       }
       
       return successResponse(res, sites);
@@ -84,7 +80,8 @@ class ConstructionSiteController {
   static async getById(req, res) {
     try {
       const { id } = req.params;
-      const site = await ConstructionSiteModel.findById(id);
+      const { ConstructionSite } = req.models;
+      const site = await ConstructionSite.findById(id);
       
       if (!site) {
         return notFoundResponse(res, 'Construction site');
@@ -92,8 +89,8 @@ class ConstructionSiteController {
       
       // Get additional details
       const [workers, requiredSkills] = await Promise.all([
-        ConstructionSiteModel.getWorkers(id),
-        ConstructionSiteModel.getRequiredSkills(id)
+        ConstructionSite.getWorkers(id),
+        ConstructionSite.getRequiredSkills(id)
       ]);
       
       return successResponse(res, {
@@ -111,23 +108,24 @@ class ConstructionSiteController {
     try {
       const { id } = req.params;
       const updateData = req.body;
+      const { ConstructionSite, StakeHolder } = req.models;
       
       // Check if site exists
-      const site = await ConstructionSiteModel.findById(id);
+      const site = await ConstructionSite.findById(id);
       if (!site) {
         return notFoundResponse(res, 'Construction site');
       }
       
       // If updating stakeholder_id, check if the new stakeholder exists
       if (updateData.stakeholder_id && updateData.stakeholder_id !== site.stakeholder_id) {
-        const stakeholder = await StakeHoldersModel.findById(updateData.stakeholder_id);
+        const stakeholder = await StakeHolder.findById(updateData.stakeholder_id);
         if (!stakeholder) {
           return notFoundResponse(res, 'Stakeholder');
         }
       }
       
-      await ConstructionSiteModel.update(id, updateData);
-      const updatedSite = await ConstructionSiteModel.findById(id);
+      await ConstructionSite.update(id, updateData);
+      const updatedSite = await ConstructionSite.findById(id);
       
       return successResponse(res, updatedSite);
     } catch (error) {
@@ -140,19 +138,20 @@ class ConstructionSiteController {
     try {
       const { id } = req.params;
       const { status } = req.body;
+      const { ConstructionSite } = req.models;
       
       if (!status) {
         return errorResponse(res, 'Status is required', 400);
       }
       
       // Check if site exists
-      const site = await ConstructionSiteModel.findById(id);
+      const site = await ConstructionSite.findById(id);
       if (!site) {
         return notFoundResponse(res, 'Construction site');
       }
       
-      await ConstructionSiteModel.updateStatus(id, status);
-      const updatedSite = await ConstructionSiteModel.findById(id);
+      await ConstructionSite.updateStatus(id, status);
+      const updatedSite = await ConstructionSite.findById(id);
       
       return successResponse(res, updatedSite);
     } catch (error) {
@@ -164,13 +163,14 @@ class ConstructionSiteController {
   static async delete(req, res) {
     try {
       const { id } = req.params;
-      const site = await ConstructionSiteModel.findById(id);
+      const { ConstructionSite } = req.models;
+      const site = await ConstructionSite.findById(id);
       
       if (!site) {
         return notFoundResponse(res, 'Construction site');
       }
       
-      await ConstructionSiteModel.delete(id);
+      await ConstructionSite.delete(id);
       return successResponse(res, { id }, 204);
     } catch (error) {
       return errorResponse(res, error.message);
@@ -182,14 +182,15 @@ class ConstructionSiteController {
   static async getWorkers(req, res) {
     try {
       const { siteId } = req.params;
+      const { ConstructionSite } = req.models;
       
       // Check if site exists
-      const site = await ConstructionSiteModel.findById(siteId);
+      const site = await ConstructionSite.findById(siteId);
       if (!site) {
         return notFoundResponse(res, 'Construction site');
       }
       
-      const workers = await ConstructionSiteModel.getWorkers(siteId);
+      const workers = await ConstructionSite.getWorkers(siteId);
       return successResponse(res, workers);
     } catch (error) {
       return errorResponse(res, error.message);
@@ -200,23 +201,24 @@ class ConstructionSiteController {
   static async assignWorker(req, res) {
     try {
       const { siteId, workerId } = req.params;
+      const { ConstructionSite, UserAccount } = req.models;
       
       // Check if site exists
-      const site = await ConstructionSiteModel.findById(siteId);
+      const site = await ConstructionSite.findById(siteId);
       if (!site) {
         return notFoundResponse(res, 'Construction site');
       }
       
       // Check if worker exists and is actually a worker
-      const worker = await UserAccountModel.findById(workerId);
+      const worker = await UserAccount.findById(workerId);
       if (!worker || worker.user_type !== 'worker') {
         return errorResponse(res, 'Invalid worker', 400);
       }
       
-      await ConstructionSiteModel.assignWorker(siteId, workerId);
-      await ConstructionSiteModel.updateWorkerCount(siteId);
+      await ConstructionSite.assignWorker(siteId, workerId);
+      await ConstructionSite.updateWorkerCount(siteId);
       
-      const updatedSite = await ConstructionSiteModel.findById(siteId);
+      const updatedSite = await ConstructionSite.findById(siteId);
       return successResponse(res, updatedSite);
     } catch (error) {
       return errorResponse(res, error.message);
@@ -227,17 +229,18 @@ class ConstructionSiteController {
   static async removeWorker(req, res) {
     try {
       const { siteId, workerId } = req.params;
+      const { ConstructionSite } = req.models;
       
       // Check if site exists
-      const site = await ConstructionSiteModel.findById(siteId);
+      const site = await ConstructionSite.findById(siteId);
       if (!site) {
         return notFoundResponse(res, 'Construction site');
       }
       
-      await ConstructionSiteModel.removeWorker(siteId, workerId);
-      await ConstructionSiteModel.updateWorkerCount(siteId);
+      await ConstructionSite.removeWorker(siteId, workerId);
+      await ConstructionSite.updateWorkerCount(siteId);
       
-      const updatedSite = await ConstructionSiteModel.findById(siteId);
+      const updatedSite = await ConstructionSite.findById(siteId);
       return successResponse(res, updatedSite);
     } catch (error) {
       return errorResponse(res, error.message);
@@ -248,21 +251,22 @@ class ConstructionSiteController {
   static async addRequiredSkill(req, res) {
     try {
       const { siteId, skillId } = req.params;
+      const { ConstructionSite, SkillsList } = req.models;
       
       // Check if site exists
-      const site = await ConstructionSiteModel.findById(siteId);
+      const site = await ConstructionSite.findById(siteId);
       if (!site) {
         return notFoundResponse(res, 'Construction site');
       }
       
       // Check if skill exists
-      const skill = await SkillsListModel.findById(skillId);
+      const skill = await SkillsList.findById(skillId);
       if (!skill) {
         return notFoundResponse(res, 'Skill');
       }
       
-      await ConstructionSiteModel.addRequiredSkill(siteId, skillId);
-      const updatedSite = await ConstructionSiteModel.findById(siteId);
+      await ConstructionSite.addRequiredSkill(siteId, skillId);
+      const updatedSite = await ConstructionSite.findById(siteId);
       
       return successResponse(res, updatedSite);
     } catch (error) {
@@ -274,15 +278,16 @@ class ConstructionSiteController {
   static async removeRequiredSkill(req, res) {
     try {
       const { siteId, skillId } = req.params;
+      const { ConstructionSite } = req.models;
       
       // Check if site exists
-      const site = await ConstructionSiteModel.findById(siteId);
+      const site = await ConstructionSite.findById(siteId);
       if (!site) {
         return notFoundResponse(res, 'Construction site');
       }
       
-      await ConstructionSiteModel.removeRequiredSkill(siteId, skillId);
-      const updatedSite = await ConstructionSiteModel.findById(siteId);
+      await ConstructionSite.removeRequiredSkill(siteId, skillId);
+      const updatedSite = await ConstructionSite.findById(siteId);
       
       return successResponse(res, updatedSite);
     } catch (error) {
@@ -294,14 +299,15 @@ class ConstructionSiteController {
   static async findCompatibleWorkers(req, res) {
     try {
       const { siteId } = req.params;
+      const { ConstructionSite } = req.models;
       
       // Check if site exists
-      const site = await ConstructionSiteModel.findById(siteId);
+      const site = await ConstructionSite.findById(siteId);
       if (!site) {
         return notFoundResponse(res, 'Construction site');
       }
       
-      const compatibleWorkers = await ConstructionSiteModel.findCompatibleWorkers(siteId);
+      const compatibleWorkers = await ConstructionSite.findCompatibleWorkers(siteId);
       
       return successResponse(res, compatibleWorkers);
     } catch (error) {

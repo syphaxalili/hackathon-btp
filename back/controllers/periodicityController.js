@@ -1,5 +1,4 @@
 const { successResponse, errorResponse, notFoundResponse } = require('./utils');
-const { PeriodicityModel, ConstructionSiteModel } = require('../models');
 
 class PeriodicityController {
   // Create a new periodicity
@@ -14,6 +13,7 @@ class PeriodicityController {
         construction_sites = [] 
       } = req.body;
       
+      const { Periodicity, ConstructionSite } = req.models;
       // Validate required fields
       if (!name || !start_date || !end_date || !frequency) {
         return errorResponse(
@@ -35,14 +35,14 @@ class PeriodicityController {
       
       // Validate construction sites exist
       for (const siteId of construction_sites) {
-        const site = await ConstructionSiteModel.findById(siteId);
+        const site = await ConstructionSite.findById(siteId);
         if (!site) {
           return notFoundResponse(res, `Construction site with ID ${siteId}`);
         }
       }
       
       // Create periodicity
-      const periodicityId = await PeriodicityModel.create({
+      const periodicityId = await Periodicity.create({
         name,
         description,
         start_date,
@@ -52,10 +52,10 @@ class PeriodicityController {
       
       // Add construction sites to periodicity
       for (const siteId of construction_sites) {
-        await PeriodicityModel.addConstructionSite(periodicityId, siteId);
+        await Periodicity.addConstructionSite(periodicityId, siteId);
       }
       
-      const newPeriodicity = await PeriodicityModel.findById(periodicityId);
+      const newPeriodicity = await Periodicity.findById(periodicityId);
       return successResponse(res, newPeriodicity, 201);
     } catch (error) {
       return errorResponse(res, error.message);
@@ -66,12 +66,13 @@ class PeriodicityController {
   static async getAll(req, res) {
     try {
       const { start_date, end_date } = req.query;
+      const { Periodicity } = req.models;
       let periodicities;
       
       if (start_date && end_date) {
-        periodicities = await PeriodicityModel.findByDateRange(start_date, end_date);
+        periodicities = await Periodicity.findByDateRange(start_date, end_date);
       } else {
-        periodicities = await PeriodicityModel.findAll();
+        periodicities = await Periodicity.findAll();
       }
       
       return successResponse(res, periodicities);
@@ -84,14 +85,15 @@ class PeriodicityController {
   static async getById(req, res) {
     try {
       const { id } = req.params;
-      const periodicity = await PeriodicityModel.findById(id);
+      const { Periodicity } = req.models;
+      const periodicity = await Periodicity.findById(id);
       
       if (!periodicity) {
         return notFoundResponse(res, 'Periodicity');
       }
       
       // Get associated construction sites
-      const constructionSites = await PeriodicityModel.getConstructionSites(id);
+      const constructionSites = await Periodicity.getConstructionSites(id);
       
       return successResponse(res, {
         ...periodicity,
@@ -114,9 +116,10 @@ class PeriodicityController {
         frequency,
         construction_sites
       } = req.body;
+      const { Periodicity, ConstructionSite } = req.models;
       
       // Check if periodicity exists
-      const periodicity = await PeriodicityModel.findById(id);
+      const periodicity = await Periodicity.findById(id);
       if (!periodicity) {
         return notFoundResponse(res, 'Periodicity');
       }
@@ -134,7 +137,7 @@ class PeriodicityController {
       }
       
       // Update periodicity
-      await PeriodicityModel.update(id, {
+      await Periodicity.update(id, {
         name: name || periodicity.name,
         description: description !== undefined ? description : periodicity.description,
         start_date: start_date || periodicity.start_date,
@@ -145,22 +148,22 @@ class PeriodicityController {
       // Update construction sites if provided
       if (Array.isArray(construction_sites)) {
         // Remove all existing associations
-        const existingSites = await PeriodicityModel.getConstructionSites(id);
+        const existingSites = await Periodicity.getConstructionSites(id);
         for (const site of existingSites) {
-          await PeriodicityModel.removeConstructionSite(id, site.id);
+          await Periodicity.removeConstructionSite(id, site.id);
         }
         
         // Add new associations
         for (const siteId of construction_sites) {
-          const site = await ConstructionSiteModel.findById(siteId);
+          const site = await ConstructionSite.findById(siteId);
           if (site) {
-            await PeriodicityModel.addConstructionSite(id, siteId);
+            await Periodicity.addConstructionSite(id, siteId);
           }
         }
       }
       
-      const updatedPeriodicity = await PeriodicityModel.findById(id);
-      const updatedSites = await PeriodicityModel.getConstructionSites(id);
+      const updatedPeriodicity = await Periodicity.findById(id);
+      const updatedSites = await Periodicity.getConstructionSites(id);
       
       return successResponse(res, {
         ...updatedPeriodicity,
@@ -175,20 +178,21 @@ class PeriodicityController {
   static async delete(req, res) {
     try {
       const { id } = req.params;
-      const periodicity = await PeriodicityModel.findById(id);
+      const { Periodicity } = req.models;
+      const periodicity = await Periodicity.findById(id);
       
       if (!periodicity) {
         return notFoundResponse(res, 'Periodicity');
       }
       
       // Remove all construction site associations
-      const constructionSites = await PeriodicityModel.getConstructionSites(id);
+      const constructionSites = await Periodicity.getConstructionSites(id);
       for (const site of constructionSites) {
-        await PeriodicityModel.removeConstructionSite(id, site.id);
+        await Periodicity.removeConstructionSite(id, site.id);
       }
       
       // Delete the periodicity
-      await PeriodicityModel.delete(id);
+      await Periodicity.delete(id);
       
       return successResponse(res, { id }, 204);
     } catch (error) {
@@ -200,29 +204,30 @@ class PeriodicityController {
   static async addConstructionSite(req, res) {
     try {
       const { periodicityId, siteId } = req.params;
+      const { Periodicity, ConstructionSite } = req.models;
       
       // Check if periodicity exists
-      const periodicity = await PeriodicityModel.findById(periodicityId);
+      const periodicity = await Periodicity.findById(periodicityId);
       if (!periodicity) {
         return notFoundResponse(res, 'Periodicity');
       }
       
       // Check if construction site exists
-      const site = await ConstructionSiteModel.findById(siteId);
+      const site = await ConstructionSite.findById(siteId);
       if (!site) {
         return notFoundResponse(res, 'Construction site');
       }
       
       // Check if the association already exists
-      const sites = await PeriodicityModel.getConstructionSites(periodicityId);
+      const sites = await Periodicity.getConstructionSites(periodicityId);
       if (sites.some(s => s.id === parseInt(siteId))) {
         return errorResponse(res, 'Construction site is already associated with this periodicity', 400);
       }
       
-      await PeriodicityModel.addConstructionSite(periodicityId, siteId);
+      await Periodicity.addConstructionSite(periodicityId, siteId);
       
-      const updatedPeriodicity = await PeriodicityModel.findById(periodicityId);
-      const updatedSites = await PeriodicityModel.getConstructionSites(periodicityId);
+      const updatedPeriodicity = await Periodicity.findById(periodicityId);
+      const updatedSites = await Periodicity.getConstructionSites(periodicityId);
       
       return successResponse(res, {
         ...updatedPeriodicity,
@@ -237,17 +242,18 @@ class PeriodicityController {
   static async removeConstructionSite(req, res) {
     try {
       const { periodicityId, siteId } = req.params;
+      const { Periodicity, ConstructionSite } = req.models;
       
       // Check if periodicity exists
-      const periodicity = await PeriodicityModel.findById(periodicityId);
+      const periodicity = await Periodicity.findById(periodicityId);
       if (!periodicity) {
         return notFoundResponse(res, 'Periodicity');
       }
       
-      await PeriodicityModel.removeConstructionSite(periodicityId, siteId);
+      await Periodicity.removeConstructionSite(periodicityId, siteId);
       
-      const updatedPeriodicity = await PeriodicityModel.findById(periodicityId);
-      const updatedSites = await PeriodicityModel.getConstructionSites(periodicityId);
+      const updatedPeriodicity = await Periodicity.findById(periodicityId);
+      const updatedSites = await Periodicity.getConstructionSites(periodicityId);
       
       return successResponse(res, {
         ...updatedPeriodicity,
