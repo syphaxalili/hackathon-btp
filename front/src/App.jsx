@@ -50,7 +50,7 @@ function App() {
           } else {
             navigate("/");
           }
-        } catch (error) {
+        } catch {
           navigate("/");
         }
       };

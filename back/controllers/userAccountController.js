@@ -197,26 +197,29 @@ class UserAccountController {
   // Get current user profile
   static async getMe(req, res) {
     try {
-      // L'utilisateur est déjà disponible dans req.user grâce au middleware d'authentification
+      // Vérifie que l'utilisateur a été injecté par le middleware d'auth
       const user = req.user;
 
-      if (!user) {
+      if (!user || !user.id) {
         return this.errorResponse(res, "User not authenticated", 401);
       }
 
-      // Récupérer les informations complètes de l'utilisateur
-      const userData = await UserAccountModel.findById(user.id);
+      // Récupère l'utilisateur dans la base de données
+      const userData = await req.models.UserAccount.findByPk(user.id);
 
       if (!userData) {
         return this.notFoundResponse(res, "User");
       }
 
-      // Supprimer les données sensibles avant l'envoi
-      const { password_hash, ...userWithoutPassword } = userData;
+      // Supprime les champs sensibles
+      const { password_hash, ...userWithoutPassword } = userData.get({
+        plain: true,
+      });
 
-      return this.successResponse(res, userWithoutPassword);
+      // Renvoie les données utilisateur dans un objet "user"
+      return this.successResponse(res, { user: userWithoutPassword });
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return this.errorResponse(res, error.message || "Server error");
     }
   }
 
