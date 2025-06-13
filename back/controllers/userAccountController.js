@@ -4,7 +4,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 class UserAccountController {
-
   static async create(req, res) {
     try {
       const { UserAccount } = req.models;

@@ -1,8 +1,10 @@
-// src/pages/Home.jsx
 import React, { useState } from "react";
 import { Box, Typography, Button, Paper } from "@mui/material";
 import { keyframes } from "@emotion/react";
 import styled from "@emotion/styled";
+import { useNavigate } from "react-router-dom";
+import { useAtom } from "jotai";
+import { userAtom } from "../Atom/UserAtom";
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -37,6 +39,42 @@ export default function Home() {
     email: "",
     password: "",
   });
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const [user, setUser] = useAtom(userAtom);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    try {
+      const response = await fetch("http://localhost:5500/auth/login", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
+
+      const data = await response.json();
+      console.log("Login response:", data);
+      if (response.ok && data.success && data.data?.user) {
+        // Recharge l'user atom avec les données reçues
+        setUser({
+          id: data.data.user.id,
+          email: data.data.user.email,
+          user_type: data.data.user.user_type,
+        });
+        console.log(user.email);
+
+        navigate("/dashbord");
+      } else {
+        setError(data.message || "Erreur de connexion");
+      }
+    } catch (err: any) {
+      setError("Erreur réseau");
+    }
+  };
 
   return (
     <Box
@@ -82,6 +120,7 @@ export default function Home() {
         </Typography>
         <Box
           component="form"
+          onSubmit={handleLogin}
           sx={{
             display: "flex",
             flexDirection: "column",
@@ -124,6 +163,7 @@ export default function Home() {
             <input
               type="password"
               name="password"
+              value={userData.password}
               onChange={(e) =>
                 setUserData({ ...userData, password: e.target.value })
               }
@@ -138,22 +178,27 @@ export default function Home() {
               }}
             />
           </Box>
+          {error && (
+            <Typography color="error" sx={{ mt: 1 }}>
+              {error}
+            </Typography>
+          )}
+          <ConnectButton
+            variant="contained"
+            type="submit"
+            sx={{
+              opacity: 0,
+              animation: "fadeInButton 1s 3s forwards",
+              boxShadow: "0 0 20px 5px #21cbf3",
+              transition: "box-shadow 0.3s",
+              "&:hover": {
+                boxShadow: "0 0 40px 10px #2196f3",
+              },
+            }}
+          >
+            Se connecter
+          </ConnectButton>
         </Box>
-        <ConnectButton
-          variant="contained"
-          sx={{
-            opacity: 0,
-            animation: "fadeInButton 1s 3s forwards",
-            boxShadow: "0 0 20px 5px #21cbf3",
-            transition: "box-shadow 0.3s",
-            "&:hover": {
-              boxShadow: "0 0 40px 10px #2196f3",
-            },
-          }}
-          // onClick={() => window.location.assign("/login")}
-        >
-          Se connecter
-        </ConnectButton>
         <style>
           {`
             @keyframes bgFadeIn {
