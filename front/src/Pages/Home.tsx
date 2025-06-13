@@ -4,8 +4,8 @@ import { keyframes } from "@emotion/react";
 import styled from "@emotion/styled";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
-import { userAtom } from "../Atom/UserAtom";
-import { apiUrl } from "../../../config";
+import { userAtom } from "../components/Atom/UserAtom";
+import { apiUrl } from "../config";
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
