@@ -9,6 +9,7 @@ const constructionSitesRoutes = require("./construction-sites.routes");
 const stakeholdersRoutes = require("./stakeholders.routes");
 const geolocationRoutes = require("./geolocation.routes");
 const statsRoutes = require("./stats.routes");
+const usersRoutes = require("./user.routes");
 
 // Définir les routes
 router.use("/auth", authRoutes);
@@ -18,5 +19,7 @@ router.use("/construction-sites", constructionSitesRoutes);
 router.use("/stakeholders", stakeholdersRoutes);
 router.use("/geolocation", geolocationRoutes);
 router.use("/stats", statsRoutes);
+router.use("/users", usersRoutes);
+
 
 module.exports = router;

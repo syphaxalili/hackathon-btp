@@ -97,13 +97,19 @@ class UserAccountController {
         users = await UserAccount.findAll();
       }
 
-      // Remove sensitive data from response
-      users = users.map((user) => {
-        const { password_hash, ...userWithoutPassword } = user;
-        return userWithoutPassword;
+      // Convertir en objets simples et filtrer les champs utiles
+      const filteredUsers = users.map((user) => {
+        const plainUser = user.get({ plain: true }); // IMPORTANT
+        return {
+          email: plainUser.email,
+          first_name: plainUser.first_name,
+          last_name: plainUser.last_name,
+          user_type: plainUser.user_type,
+          is_actif: plainUser.is_actif,
+        };
       });
 
-      return successResponse(res, users);
+      return successResponse(res, filteredUsers);
     } catch (error) {
       return errorResponse(res, error.message);
     }
