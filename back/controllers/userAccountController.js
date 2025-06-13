@@ -73,8 +73,9 @@ class UserAccountController {
       delete userJson.password;
 
       res.cookie("token", token, {
-        httpOnly: true,
+        httpOnly: false,
         maxAge: 24 * 60 * 60 * 1000,
+        samsite: "lax",
       });
 
       return successResponse(res, { user, token });
