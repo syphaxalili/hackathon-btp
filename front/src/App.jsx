@@ -100,7 +100,10 @@ function App() {
       <Route path="*" element={<NotFound />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
 
-      <Route
+      
+      <Route path="/dashbord" element={<MainLayout />}>
+        <Route index element={<Page1 />} />
+        <Route
         path="/dashbord/acceuil1"
         element={
           <PrivateRoute
@@ -108,18 +111,16 @@ function App() {
             component={Page1}
           />
         }
-      />
-      <Route
-        path="/dashbord/acceuil2"
-        element={
-          <PrivateRoute
-            conditionsEvery={[{ field: "user_type", allowedValues: ["AD"] }]}
-            component={Page2}
-          />
-        }
-      />
-      <Route path="/dashbord" element={<MainLayout />}>
-        <Route index element={<Page1 />} />
+        />
+        <Route
+          path="/dashbord/acceuil2"
+          element={
+            <PrivateRoute
+              conditionsEvery={[{ field: "user_type", allowedValues: ["AD"] }]}
+              component={Page2}
+            />
+          }
+        />
       </Route>
     </Routes>
   );
