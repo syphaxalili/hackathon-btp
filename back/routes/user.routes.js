@@ -1,10 +1,9 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { UserAccountController } = require('../controllers');
-
+const { UserAccountController } = require("../controllers");
 
 // Routes utilisateur
-router.get('/', UserAccountController.getAll);
+router.get("/all", UserAccountController.getAll);
 // router.get('/auth/me', authenticateToken, UserAccountController.getMe);
 // router.get('/:id', authenticateToken, UserAccountController.getById);
 // router.put('/:id', authenticateToken, UserAccountController.update);
