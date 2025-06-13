@@ -10,6 +10,7 @@ import Unauthorized from "./components/Atom/Unauthorized";
 import MainLayout from "./layouts/MainLayout";
 import Page1 from "./Pages/Page1";
 import Page2 from "./Pages/Page2";
+import WorkersList from "./Pages/WorkersList";
 import { PrivateRoute } from "./components/Atom/PrivateRoute";
 import { apiUrl } from "./config";
 
@@ -120,6 +121,7 @@ function App() {
             />
           }
         />
+        <Route path="/dashbord/ouvriers" element={<WorkersList />} />
       </Route>
     </Routes>
   );

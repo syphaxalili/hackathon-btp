@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { Button, Typography, Box } from "@mui/material";
-import { apiUrl } from "../../../config";
+import { apiUrl } from "../config";
 import { useAtom } from "jotai";
-import { userAtom } from "../Atom/UserAtom";
+import { userAtom } from "../components/Atom/UserAtom";
 
 const WorkersList = () => {
   const [rows, setRows] = useState([]);
-  const [user] = useAtom(userAtom); // Assuming you have a userAtom defined in your state management
+  const [user] = useAtom(userAtom); 
 
   useEffect(() => {
     const fetchUsers = async () => {
