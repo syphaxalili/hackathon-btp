@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Drawer,
   List,
@@ -15,7 +16,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAtom } from "jotai";
-import { User, userAtom } from "../Atom/UserAtom";
+import { User, userAtom } from "./Atom/UserAtom";
 
 const drawerWidth = 240;
 

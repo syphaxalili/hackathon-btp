@@ -1,11 +1,11 @@
 // App.jsx
 import { Routes, Route } from "react-router-dom";
-import Home from "./components/Home/Home";
+import Home from "./Pages/Home";
 import NotFound from "./components/Atom/NotFound";
 import Unauthorized from "./components/Atom/Unauthorized";
-import MainLayout from "./components/SideNavbar/MainLayout";
-import Page1 from "./components/Pages/Page1";
-import Page2 from "./components/Pages/Pages2";
+import MainLayout from "./layouts/MainLayout";
+import Page1 from "./Pages/Page1";
+import Page2 from "./Pages/Pages2";
 import { PrivateRoute } from "./components/Atom/PrivateRoute";
 
 function App() {
