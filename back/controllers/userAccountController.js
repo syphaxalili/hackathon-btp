@@ -1,9 +1,9 @@
-const BaseController = require("./baseController");
+const { successResponse, errorResponse, notFoundResponse } = require("./utils");
 const { UserAccountModel, SkillsListModel } = require("../models");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-class UserAccountController extends BaseController {
+class UserAccountController {
   // Create a new user account
   static async create(req, res) {
     try {
@@ -12,7 +12,7 @@ class UserAccountController extends BaseController {
 
       // Validate required fields
       if (!email || !password || !user_type || !firstname || !lastname) {
-        return this.errorResponse(
+        return errorResponse(
           res,
           "Email, password, user_type, firstname, and lastname are required",
           400
@@ -36,9 +36,9 @@ class UserAccountController extends BaseController {
       // Remove sensitive data from response
       delete newUser.password_hash;
 
-      return this.successResponse(res, newUser, 201);
+      return successResponse(res, newUser, 201);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -48,19 +48,19 @@ class UserAccountController extends BaseController {
       const { email, password } = req.body;
 
       if (!email || !password) {
-        return this.errorResponse(res, "Email and password are required", 400);
+        return errorResponse(res, "Email and password are required", 400);
       }
 
       // 1. Vérifie si l'utilisateur existe
       const user = await UserAccountModel.findOne({ where: { email } });
       if (!user) {
-        return this.errorResponse(res, "Invalid email or password", 401);
+        return errorResponse(res, "Invalid email or password", 401);
       }
 
       // 2. Compare le mot de passe
       const isMatch = await bcrypt.compare(password, user.password_hash);
       if (!isMatch) {
-        return this.errorResponse(res, "Invalid email or password", 401);
+        return errorResponse(res, "Invalid email or password", 401);
       }
 
       // 3. Génère le token JWT
@@ -82,9 +82,9 @@ class UserAccountController extends BaseController {
         maxAge: 24 * 60 * 60 * 1000, // 1 jour
       });
 
-      return this.successResponse(res, { user, token });
+      return successResponse(res, { user, token });
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -106,9 +106,9 @@ class UserAccountController extends BaseController {
         return userWithoutPassword;
       });
 
-      return this.successResponse(res, users);
+      return successResponse(res, users);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -119,15 +119,15 @@ class UserAccountController extends BaseController {
       const user = await UserAccountModel.findById(id);
 
       if (!user) {
-        return this.notFoundResponse(res, "User");
+        return notFoundResponse(res, "User");
       }
 
       // Remove sensitive data from response
       const { password_hash, ...userWithoutPassword } = user;
 
-      return this.successResponse(res, userWithoutPassword);
+      return successResponse(res, userWithoutPassword);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -140,7 +140,7 @@ class UserAccountController extends BaseController {
       // Check if user exists
       const user = await UserAccountModel.findById(id);
       if (!user) {
-        return this.notFoundResponse(res, "User");
+        return notFoundResponse(res, "User");
       }
 
       // If password is being updated, hash it
@@ -159,9 +159,9 @@ class UserAccountController extends BaseController {
       // Remove sensitive data from response
       delete updatedUser.password_hash;
 
-      return this.successResponse(res, updatedUser);
+      return successResponse(res, updatedUser);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -172,13 +172,13 @@ class UserAccountController extends BaseController {
       const user = await UserAccountModel.findById(id);
 
       if (!user) {
-        return this.notFoundResponse(res, "User");
+        return notFoundResponse(res, "User");
       }
 
       await UserAccountModel.delete(id);
-      return this.successResponse(res, { id }, 204);
+      return successResponse(res, { id }, 204);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -189,22 +189,22 @@ class UserAccountController extends BaseController {
       const user = req.user;
       
       if (!user) {
-        return this.errorResponse(res, 'User not authenticated', 401);
+        return errorResponse(res, 'User not authenticated', 401);
       }
 
       // Récupérer les informations complètes de l'utilisateur
       const userData = await UserAccountModel.findById(user.id);
       
       if (!userData) {
-        return this.notFoundResponse(res, 'User');
+        return notFoundResponse(res, 'User');
       }
 
       // Supprimer les données sensibles avant l'envoi
       const { password_hash, ...userWithoutPassword } = userData;
 
-      return this.successResponse(res, userWithoutPassword);
+      return successResponse(res, userWithoutPassword);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -216,13 +216,13 @@ class UserAccountController extends BaseController {
       // Check if user exists
       const user = await UserAccountModel.findById(userId);
       if (!user) {
-        return this.notFoundResponse(res, "User");
+        return notFoundResponse(res, "User");
       }
 
       // Check if skill exists
       const skill = await SkillsListModel.findById(skillId);
       if (!skill) {
-        return this.notFoundResponse(res, "Skill");
+        return notFoundResponse(res, "Skill");
       }
 
       await UserAccountModel.addSkill(userId, skillId);
@@ -231,9 +231,9 @@ class UserAccountController extends BaseController {
       // Remove sensitive data from response
       delete updatedUser.password_hash;
 
-      return this.successResponse(res, updatedUser);
+      return successResponse(res, updatedUser);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -245,7 +245,7 @@ class UserAccountController extends BaseController {
       // Check if user exists
       const user = await UserAccountModel.findById(userId);
       if (!user) {
-        return this.notFoundResponse(res, "User");
+        return notFoundResponse(res, "User");
       }
 
       await UserAccountModel.removeSkill(userId, skillId);
@@ -254,9 +254,9 @@ class UserAccountController extends BaseController {
       // Remove sensitive data from response
       delete updatedUser.password_hash;
 
-      return this.successResponse(res, updatedUser);
+      return successResponse(res, updatedUser);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -268,13 +268,13 @@ class UserAccountController extends BaseController {
       // Check if user exists
       const user = await UserAccountModel.findById(userId);
       if (!user) {
-        return this.notFoundResponse(res, "User");
+        return notFoundResponse(res, "User");
       }
 
       const skills = await UserAccountModel.getSkills(userId);
-      return this.successResponse(res, skills);
+      return successResponse(res, skills);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 }

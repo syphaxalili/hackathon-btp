@@ -1,4 +1,4 @@
-const BaseController = require('./baseController');
+const { successResponse, errorResponse, notFoundResponse } = require('./utils');
 const { 
   ConstructionSiteModel, 
   UserAccountModel, 
@@ -6,7 +6,7 @@ const {
   StakeHoldersModel 
 } = require('../models');
 
-class ConstructionSiteController extends BaseController {
+class ConstructionSiteController {
   // Create a new construction site
   static async create(req, res) {
     try {
@@ -23,13 +23,13 @@ class ConstructionSiteController extends BaseController {
       
       // Validate required fields
       if (!name || !start_date || !stakeholder_id) {
-        return this.errorResponse(res, 'Name, start_date, and stakeholder_id are required', 400);
+        return errorResponse(res, 'Name, start_date, and stakeholder_id are required', 400);
       }
       
       // Check if stakeholder exists
       const stakeholder = await StakeHoldersModel.findById(stakeholder_id);
       if (!stakeholder) {
-        return this.notFoundResponse(res, 'Stakeholder');
+        return notFoundResponse(res, 'Stakeholder');
       }
       
       // Create construction site
@@ -54,9 +54,9 @@ class ConstructionSiteController extends BaseController {
       }
       
       const newSite = await ConstructionSiteModel.findById(siteId);
-      return this.successResponse(res, newSite, 201);
+      return successResponse(res, newSite, 201);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -74,9 +74,9 @@ class ConstructionSiteController extends BaseController {
         sites = await ConstructionSiteModel.findAll();
       }
       
-      return this.successResponse(res, sites);
+      return successResponse(res, sites);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -87,7 +87,7 @@ class ConstructionSiteController extends BaseController {
       const site = await ConstructionSiteModel.findById(id);
       
       if (!site) {
-        return this.notFoundResponse(res, 'Construction site');
+        return notFoundResponse(res, 'Construction site');
       }
       
       // Get additional details
@@ -96,13 +96,13 @@ class ConstructionSiteController extends BaseController {
         ConstructionSiteModel.getRequiredSkills(id)
       ]);
       
-      return this.successResponse(res, {
+      return successResponse(res, {
         ...site,
         workers,
         required_skills: requiredSkills
       });
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -115,23 +115,23 @@ class ConstructionSiteController extends BaseController {
       // Check if site exists
       const site = await ConstructionSiteModel.findById(id);
       if (!site) {
-        return this.notFoundResponse(res, 'Construction site');
+        return notFoundResponse(res, 'Construction site');
       }
       
       // If updating stakeholder_id, check if the new stakeholder exists
       if (updateData.stakeholder_id && updateData.stakeholder_id !== site.stakeholder_id) {
         const stakeholder = await StakeHoldersModel.findById(updateData.stakeholder_id);
         if (!stakeholder) {
-          return this.notFoundResponse(res, 'Stakeholder');
+          return notFoundResponse(res, 'Stakeholder');
         }
       }
       
       await ConstructionSiteModel.update(id, updateData);
       const updatedSite = await ConstructionSiteModel.findById(id);
       
-      return this.successResponse(res, updatedSite);
+      return successResponse(res, updatedSite);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -142,21 +142,21 @@ class ConstructionSiteController extends BaseController {
       const { status } = req.body;
       
       if (!status) {
-        return this.errorResponse(res, 'Status is required', 400);
+        return errorResponse(res, 'Status is required', 400);
       }
       
       // Check if site exists
       const site = await ConstructionSiteModel.findById(id);
       if (!site) {
-        return this.notFoundResponse(res, 'Construction site');
+        return notFoundResponse(res, 'Construction site');
       }
       
       await ConstructionSiteModel.updateStatus(id, status);
       const updatedSite = await ConstructionSiteModel.findById(id);
       
-      return this.successResponse(res, updatedSite);
+      return successResponse(res, updatedSite);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -167,13 +167,13 @@ class ConstructionSiteController extends BaseController {
       const site = await ConstructionSiteModel.findById(id);
       
       if (!site) {
-        return this.notFoundResponse(res, 'Construction site');
+        return notFoundResponse(res, 'Construction site');
       }
       
       await ConstructionSiteModel.delete(id);
-      return this.successResponse(res, { id }, 204);
+      return successResponse(res, { id }, 204);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -186,13 +186,13 @@ class ConstructionSiteController extends BaseController {
       // Check if site exists
       const site = await ConstructionSiteModel.findById(siteId);
       if (!site) {
-        return this.notFoundResponse(res, 'Construction site');
+        return notFoundResponse(res, 'Construction site');
       }
       
       const workers = await ConstructionSiteModel.getWorkers(siteId);
-      return this.successResponse(res, workers);
+      return successResponse(res, workers);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -204,22 +204,22 @@ class ConstructionSiteController extends BaseController {
       // Check if site exists
       const site = await ConstructionSiteModel.findById(siteId);
       if (!site) {
-        return this.notFoundResponse(res, 'Construction site');
+        return notFoundResponse(res, 'Construction site');
       }
       
       // Check if worker exists and is actually a worker
       const worker = await UserAccountModel.findById(workerId);
       if (!worker || worker.user_type !== 'worker') {
-        return this.errorResponse(res, 'Invalid worker', 400);
+        return errorResponse(res, 'Invalid worker', 400);
       }
       
       await ConstructionSiteModel.assignWorker(siteId, workerId);
       await ConstructionSiteModel.updateWorkerCount(siteId);
       
       const updatedSite = await ConstructionSiteModel.findById(siteId);
-      return this.successResponse(res, updatedSite);
+      return successResponse(res, updatedSite);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -231,16 +231,16 @@ class ConstructionSiteController extends BaseController {
       // Check if site exists
       const site = await ConstructionSiteModel.findById(siteId);
       if (!site) {
-        return this.notFoundResponse(res, 'Construction site');
+        return notFoundResponse(res, 'Construction site');
       }
       
       await ConstructionSiteModel.removeWorker(siteId, workerId);
       await ConstructionSiteModel.updateWorkerCount(siteId);
       
       const updatedSite = await ConstructionSiteModel.findById(siteId);
-      return this.successResponse(res, updatedSite);
+      return successResponse(res, updatedSite);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -252,21 +252,21 @@ class ConstructionSiteController extends BaseController {
       // Check if site exists
       const site = await ConstructionSiteModel.findById(siteId);
       if (!site) {
-        return this.notFoundResponse(res, 'Construction site');
+        return notFoundResponse(res, 'Construction site');
       }
       
       // Check if skill exists
       const skill = await SkillsListModel.findById(skillId);
       if (!skill) {
-        return this.notFoundResponse(res, 'Skill');
+        return notFoundResponse(res, 'Skill');
       }
       
       await ConstructionSiteModel.addRequiredSkill(siteId, skillId);
       const updatedSite = await ConstructionSiteModel.findById(siteId);
       
-      return this.successResponse(res, updatedSite);
+      return successResponse(res, updatedSite);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -278,15 +278,15 @@ class ConstructionSiteController extends BaseController {
       // Check if site exists
       const site = await ConstructionSiteModel.findById(siteId);
       if (!site) {
-        return this.notFoundResponse(res, 'Construction site');
+        return notFoundResponse(res, 'Construction site');
       }
       
       await ConstructionSiteModel.removeRequiredSkill(siteId, skillId);
       const updatedSite = await ConstructionSiteModel.findById(siteId);
       
-      return this.successResponse(res, updatedSite);
+      return successResponse(res, updatedSite);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -298,14 +298,14 @@ class ConstructionSiteController extends BaseController {
       // Check if site exists
       const site = await ConstructionSiteModel.findById(siteId);
       if (!site) {
-        return this.notFoundResponse(res, 'Construction site');
+        return notFoundResponse(res, 'Construction site');
       }
       
       const compatibleWorkers = await ConstructionSiteModel.findCompatibleWorkers(siteId);
       
-      return this.successResponse(res, compatibleWorkers);
+      return successResponse(res, compatibleWorkers);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 }

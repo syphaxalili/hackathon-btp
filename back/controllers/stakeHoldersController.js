@@ -1,7 +1,7 @@
-const BaseController = require('./baseController');
+const { successResponse, errorResponse, notFoundResponse } = require('./utils');
 const { StakeHoldersModel } = require('../models');
 
-class StakeHoldersController extends BaseController {
+class StakeHoldersController {
   // Create a new stakeholder
   static async create(req, res) {
     try {
@@ -9,7 +9,7 @@ class StakeHoldersController extends BaseController {
       
       // Validate required fields
       if (!name || !contact_email) {
-        return this.errorResponse(res, 'Name and contact email are required', 400);
+        return errorResponse(res, 'Name and contact email are required', 400);
       }
       
       const stakeholderId = await StakeHoldersModel.create({
@@ -21,9 +21,9 @@ class StakeHoldersController extends BaseController {
       });
       
       const newStakeholder = await StakeHoldersModel.findById(stakeholderId);
-      return this.successResponse(res, newStakeholder, 201);
+      return successResponse(res, newStakeholder, 201);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -31,9 +31,9 @@ class StakeHoldersController extends BaseController {
   static async getAll(req, res) {
     try {
       const stakeholders = await StakeHoldersModel.findAll();
-      return this.successResponse(res, stakeholders);
+      return successResponse(res, stakeholders);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -44,12 +44,12 @@ class StakeHoldersController extends BaseController {
       const stakeholder = await StakeHoldersModel.findById(id);
       
       if (!stakeholder) {
-        return this.notFoundResponse(res, 'Stakeholder');
+        return notFoundResponse(res, 'Stakeholder');
       }
       
-      return this.successResponse(res, stakeholder);
+      return successResponse(res, stakeholder);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -62,7 +62,7 @@ class StakeHoldersController extends BaseController {
       // Check if stakeholder exists
       const stakeholder = await StakeHoldersModel.findById(id);
       if (!stakeholder) {
-        return this.notFoundResponse(res, 'Stakeholder');
+        return notFoundResponse(res, 'Stakeholder');
       }
       
       // Prevent updating certain fields directly
@@ -71,9 +71,9 @@ class StakeHoldersController extends BaseController {
       await StakeHoldersModel.update(id, validUpdates);
       const updatedStakeholder = await StakeHoldersModel.findById(id);
       
-      return this.successResponse(res, updatedStakeholder);
+      return successResponse(res, updatedStakeholder);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -84,13 +84,13 @@ class StakeHoldersController extends BaseController {
       const stakeholder = await StakeHoldersModel.findById(id);
       
       if (!stakeholder) {
-        return this.notFoundResponse(res, 'Stakeholder');
+        return notFoundResponse(res, 'Stakeholder');
       }
       
       await StakeHoldersModel.delete(id);
-      return this.successResponse(res, { id }, 204);
+      return successResponse(res, { id }, 204);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 }

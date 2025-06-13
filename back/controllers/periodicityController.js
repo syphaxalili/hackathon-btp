@@ -1,7 +1,7 @@
-const BaseController = require('./baseController');
+const { successResponse, errorResponse, notFoundResponse } = require('./utils');
 const { PeriodicityModel, ConstructionSiteModel } = require('../models');
 
-class PeriodicityController extends BaseController {
+class PeriodicityController {
   // Create a new periodicity
   static async create(req, res) {
     try {
@@ -16,7 +16,7 @@ class PeriodicityController extends BaseController {
       
       // Validate required fields
       if (!name || !start_date || !end_date || !frequency) {
-        return this.errorResponse(
+        return errorResponse(
           res, 
           'Name, start_date, end_date, and frequency are required', 
           400
@@ -26,7 +26,7 @@ class PeriodicityController extends BaseController {
       // Validate frequency
       const validFrequencies = ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'];
       if (!validFrequencies.includes(frequency)) {
-        return this.errorResponse(
+        return errorResponse(
           res, 
           `Invalid frequency. Must be one of: ${validFrequencies.join(', ')}`,
           400
@@ -37,7 +37,7 @@ class PeriodicityController extends BaseController {
       for (const siteId of construction_sites) {
         const site = await ConstructionSiteModel.findById(siteId);
         if (!site) {
-          return this.notFoundResponse(res, `Construction site with ID ${siteId}`);
+          return notFoundResponse(res, `Construction site with ID ${siteId}`);
         }
       }
       
@@ -56,9 +56,9 @@ class PeriodicityController extends BaseController {
       }
       
       const newPeriodicity = await PeriodicityModel.findById(periodicityId);
-      return this.successResponse(res, newPeriodicity, 201);
+      return successResponse(res, newPeriodicity, 201);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -74,9 +74,9 @@ class PeriodicityController extends BaseController {
         periodicities = await PeriodicityModel.findAll();
       }
       
-      return this.successResponse(res, periodicities);
+      return successResponse(res, periodicities);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -87,18 +87,18 @@ class PeriodicityController extends BaseController {
       const periodicity = await PeriodicityModel.findById(id);
       
       if (!periodicity) {
-        return this.notFoundResponse(res, 'Periodicity');
+        return notFoundResponse(res, 'Periodicity');
       }
       
       // Get associated construction sites
       const constructionSites = await PeriodicityModel.getConstructionSites(id);
       
-      return this.successResponse(res, {
+      return successResponse(res, {
         ...periodicity,
         construction_sites: constructionSites
       });
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -118,14 +118,14 @@ class PeriodicityController extends BaseController {
       // Check if periodicity exists
       const periodicity = await PeriodicityModel.findById(id);
       if (!periodicity) {
-        return this.notFoundResponse(res, 'Periodicity');
+        return notFoundResponse(res, 'Periodicity');
       }
       
       // Validate frequency if provided
       if (frequency) {
         const validFrequencies = ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'];
         if (!validFrequencies.includes(frequency)) {
-          return this.errorResponse(
+          return errorResponse(
             res, 
             `Invalid frequency. Must be one of: ${validFrequencies.join(', ')}`,
             400
@@ -162,12 +162,12 @@ class PeriodicityController extends BaseController {
       const updatedPeriodicity = await PeriodicityModel.findById(id);
       const updatedSites = await PeriodicityModel.getConstructionSites(id);
       
-      return this.successResponse(res, {
+      return successResponse(res, {
         ...updatedPeriodicity,
         construction_sites: updatedSites
       });
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -178,7 +178,7 @@ class PeriodicityController extends BaseController {
       const periodicity = await PeriodicityModel.findById(id);
       
       if (!periodicity) {
-        return this.notFoundResponse(res, 'Periodicity');
+        return notFoundResponse(res, 'Periodicity');
       }
       
       // Remove all construction site associations
@@ -190,9 +190,9 @@ class PeriodicityController extends BaseController {
       // Delete the periodicity
       await PeriodicityModel.delete(id);
       
-      return this.successResponse(res, { id }, 204);
+      return successResponse(res, { id }, 204);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -204,19 +204,19 @@ class PeriodicityController extends BaseController {
       // Check if periodicity exists
       const periodicity = await PeriodicityModel.findById(periodicityId);
       if (!periodicity) {
-        return this.notFoundResponse(res, 'Periodicity');
+        return notFoundResponse(res, 'Periodicity');
       }
       
       // Check if construction site exists
       const site = await ConstructionSiteModel.findById(siteId);
       if (!site) {
-        return this.notFoundResponse(res, 'Construction site');
+        return notFoundResponse(res, 'Construction site');
       }
       
       // Check if the association already exists
       const sites = await PeriodicityModel.getConstructionSites(periodicityId);
       if (sites.some(s => s.id === parseInt(siteId))) {
-        return this.errorResponse(res, 'Construction site is already associated with this periodicity', 400);
+        return errorResponse(res, 'Construction site is already associated with this periodicity', 400);
       }
       
       await PeriodicityModel.addConstructionSite(periodicityId, siteId);
@@ -224,12 +224,12 @@ class PeriodicityController extends BaseController {
       const updatedPeriodicity = await PeriodicityModel.findById(periodicityId);
       const updatedSites = await PeriodicityModel.getConstructionSites(periodicityId);
       
-      return this.successResponse(res, {
+      return successResponse(res, {
         ...updatedPeriodicity,
         construction_sites: updatedSites
       });
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -241,7 +241,7 @@ class PeriodicityController extends BaseController {
       // Check if periodicity exists
       const periodicity = await PeriodicityModel.findById(periodicityId);
       if (!periodicity) {
-        return this.notFoundResponse(res, 'Periodicity');
+        return notFoundResponse(res, 'Periodicity');
       }
       
       await PeriodicityModel.removeConstructionSite(periodicityId, siteId);
@@ -249,12 +249,12 @@ class PeriodicityController extends BaseController {
       const updatedPeriodicity = await PeriodicityModel.findById(periodicityId);
       const updatedSites = await PeriodicityModel.getConstructionSites(periodicityId);
       
-      return this.successResponse(res, {
+      return successResponse(res, {
         ...updatedPeriodicity,
         construction_sites: updatedSites
       });
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 }

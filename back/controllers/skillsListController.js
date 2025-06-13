@@ -1,7 +1,7 @@
-const BaseController = require('./baseController');
+const { successResponse, errorResponse, notFoundResponse } = require('./utils');
 const { SkillsListModel, CategoryModel } = require('../models');
 
-class SkillsListController extends BaseController {
+class SkillsListController {
   // Create a new skill
   static async create(req, res) {
     try {
@@ -9,21 +9,21 @@ class SkillsListController extends BaseController {
       
       // Validate input
       if (!name || !category_id) {
-        return this.errorResponse(res, 'Name and category_id are required', 400);
+        return errorResponse(res, 'Name and category_id are required', 400);
       }
       
       // Check if category exists
       const category = await CategoryModel.findById(category_id);
       if (!category) {
-        return this.notFoundResponse(res, 'Category');
+        return notFoundResponse(res, 'Category');
       }
       
       const skillId = await SkillsListModel.create({ name, category_id });
       const newSkill = await SkillsListModel.findById(skillId);
       
-      return this.successResponse(res, newSkill, 201);
+      return successResponse(res, newSkill, 201);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -31,9 +31,9 @@ class SkillsListController extends BaseController {
   static async getAll(req, res) {
     try {
       const skills = await SkillsListModel.findAll();
-      return this.successResponse(res, skills);
+      return successResponse(res, skills);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -44,12 +44,12 @@ class SkillsListController extends BaseController {
       const skill = await SkillsListModel.findById(id);
       
       if (!skill) {
-        return this.notFoundResponse(res, 'Skill');
+        return notFoundResponse(res, 'Skill');
       }
       
-      return this.successResponse(res, skill);
+      return successResponse(res, skill);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -61,13 +61,13 @@ class SkillsListController extends BaseController {
       // Check if category exists
       const category = await CategoryModel.findById(categoryId);
       if (!category) {
-        return this.notFoundResponse(res, 'Category');
+        return notFoundResponse(res, 'Category');
       }
       
       const skills = await SkillsListModel.findByCategory(categoryId);
-      return this.successResponse(res, skills);
+      return successResponse(res, skills);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -80,14 +80,14 @@ class SkillsListController extends BaseController {
       // Check if skill exists
       const skill = await SkillsListModel.findById(id);
       if (!skill) {
-        return this.notFoundResponse(res, 'Skill');
+        return notFoundResponse(res, 'Skill');
       }
       
       // If updating category_id, check if the new category exists
       if (category_id && category_id !== skill.category_id) {
         const category = await CategoryModel.findById(category_id);
         if (!category) {
-          return this.notFoundResponse(res, 'Category');
+          return notFoundResponse(res, 'Category');
         }
       }
       
@@ -97,9 +97,9 @@ class SkillsListController extends BaseController {
       });
       
       const updatedSkill = await SkillsListModel.findById(id);
-      return this.successResponse(res, updatedSkill);
+      return successResponse(res, updatedSkill);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -110,13 +110,13 @@ class SkillsListController extends BaseController {
       const skill = await SkillsListModel.findById(id);
       
       if (!skill) {
-        return this.notFoundResponse(res, 'Skill');
+        return notFoundResponse(res, 'Skill');
       }
       
       await SkillsListModel.delete(id);
-      return this.successResponse(res, { id }, 204);
+      return successResponse(res, { id }, 204);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 }

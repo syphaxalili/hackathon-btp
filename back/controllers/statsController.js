@@ -1,14 +1,14 @@
-const BaseController = require('./baseController');
+const { successResponse, errorResponse, notFoundResponse } = require('./utils');
 const { StatsModel, ConstructionSiteModel, UserAccountModel } = require('../models');
 
-class StatsController extends BaseController {
+class StatsController {
   // Get dashboard statistics
   static async getDashboardStats(req, res) {
     try {
       const dashboardStats = await StatsModel.getDashboardStats();
-      return this.successResponse(res, dashboardStats);
+      return successResponse(res, dashboardStats);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -16,9 +16,9 @@ class StatsController extends BaseController {
   static async getWorkerUtilization(req, res) {
     try {
       const utilizationStats = await StatsModel.getWorkerUtilization();
-      return this.successResponse(res, utilizationStats);
+      return successResponse(res, utilizationStats);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -74,9 +74,9 @@ class StatsController extends BaseController {
         }
       });
       
-      return this.successResponse(res, stats);
+      return successResponse(res, stats);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -139,9 +139,9 @@ class StatsController extends BaseController {
         }
       });
       
-      return this.successResponse(res, stats);
+      return successResponse(res, stats);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 
@@ -150,9 +150,9 @@ class StatsController extends BaseController {
     try {
       const { StatsModel } = require('../models');
       const stats = await StatsModel.getStakeholderStats();
-      return this.successResponse(res, stats);
+      return successResponse(res, stats);
     } catch (error) {
-      return this.errorResponse(res, error.message);
+      return errorResponse(res, error.message);
     }
   }
 }
