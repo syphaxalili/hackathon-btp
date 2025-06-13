@@ -1,4 +1,4 @@
-const BaseController = require('./baseController');
+const BaseController = require('./utils');
 const GeolocationController = require('./geolocationController');
 const CategoryController = require('./categoryController');
 const SkillsListController = require('./skillsListController');
