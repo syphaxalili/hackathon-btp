@@ -23,7 +23,6 @@ import { Add, Edit, Delete } from '@mui/icons-material';
 interface Category {
   id: number;
   name: string;
-  description: string;
   skills: Skill[];
 }
 
@@ -196,15 +195,6 @@ const SkillsManagement: React.FC = () => {
               value={currentCategory.name || ''}
               onChange={(e) => setCurrentCategory({...currentCategory, name: e.target.value})}
               fullWidth
-              margin="normal"
-            />
-            <TextField
-              label="Description"
-              value={currentCategory.description || ''}
-              onChange={(e) => setCurrentCategory({...currentCategory, description: e.target.value})}
-              fullWidth
-              multiline
-              rows={3}
               margin="normal"
             />
           </Box>
