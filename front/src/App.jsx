@@ -14,6 +14,7 @@ import WorkersList from "./Pages/ManageWorkers/WorkersList";
 import { PrivateRoute } from "./components/Atom/PrivateRoute";
 import { apiUrl } from "./config";
 import WorkerInvitation from "./Pages/ManageWorkers/WorkerInvitation";
+import Logout from "./Pages/ManageAccount/Logout";
 
 function App() {
   const [user, setUser] = useAtom(userAtom);
@@ -109,6 +110,7 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="*" element={<NotFound />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
+      <Route path="/logout" element={<Logout />} />
 
       <Route path="/dashbord" element={<MainLayout />}>
         <Route index element={<Page1 />} />

@@ -47,8 +47,7 @@ const SideNavbar = () => {
   };
 
   const handleLogout = () => {
-    console.log("Déconnexion...");
-    navigate("/login");
+    navigate("/logout");
   };
 
   return (
