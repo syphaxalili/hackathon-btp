@@ -192,6 +192,7 @@ class UserAccountController {
       const filteredUsers = users.map((user) => {
         const plainUser = user.get({ plain: true }); // IMPORTANT
         return {
+          id: plainUser.id,
           email: plainUser.email,
           first_name: plainUser.first_name,
           last_name: plainUser.last_name,
@@ -211,16 +212,19 @@ class UserAccountController {
     try {
       const { id } = req.params;
       const { UserAccount } = req.models;
-      const user = await UserAccount.findById(id);
+      const user = await UserAccount.findByPk(id);
 
       if (!user) {
         return notFoundResponse(res, "User");
       }
 
-      // Remove sensitive data from response
-      const { password_hash, ...userWithoutPassword } = user;
+      // On extrait les vraies données, sans métadonnées
+      const userPlain = user.get({ plain: true });
 
-      return successResponse(res, userWithoutPassword);
+      // On supprime le mot de passe du résultat
+      delete userPlain.password;
+
+      return successResponse(res, userPlain);
     } catch (error) {
       return errorResponse(res, error.message);
     }
@@ -253,7 +257,7 @@ class UserAccountController {
       await UserAccount.update(updateFields, { where: { id } });
 
       const updatedUser = await UserAccount.findByPk(id);
-if (updatedUser) delete updatedUser.dataValues.password;
+      if (updatedUser) delete updatedUser.dataValues.password;
       return successResponse(res, updatedUser);
     } catch (error) {
       return errorResponse(res, error.message);

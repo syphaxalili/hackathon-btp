@@ -15,7 +15,11 @@ router.put(
   AuthMiddleware.authenticateToken,
   UserAccountController.update
 );
-// router.get('/:id', authenticateToken, UserAccountController.getById);
+router.get(
+  "/worker/:id",
+  AuthMiddleware.authenticateToken,
+  UserAccountController.getById
+);
 // router.put('/:id', authenticateToken, UserAccountController.update);
 // router.delete('/:id', authenticateToken, checkRole(['admin']), UserAccountController.delete);
 
