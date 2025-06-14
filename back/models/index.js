@@ -6,7 +6,7 @@ const DataTypes = Sequelize.DataTypes;
 module.exports = (sequelize) => {
   // Import des modèles avec leurs définitions Sequelize
   const Category = require("./Category")(sequelize, DataTypes);
-  const SkillsList = require("./SkillsList")(sequelize, DataTypes);
+  const Skill = require("./Skill")(sequelize, DataTypes);
   const UserAccount = require("./UserAccount")(sequelize, DataTypes);
   const StakeHolder = require("./StakeHolder")(sequelize, DataTypes);
   const ConstructionSite = require("./ConstructionSite")(sequelize, DataTypes);
@@ -15,8 +15,8 @@ module.exports = (sequelize) => {
   // NOTE: AbstractGeolocation n'est pas un modèle Sequelize, donc on ne l'instancie pas ici
 
   // Associations entre modèles
-  Category.hasMany(SkillsList, { foreignKey: "CategoryId" });
-  SkillsList.belongsTo(Category, { foreignKey: "CategoryId" });
+  Category.hasMany(Skill, { foreignKey: "CategoryId" });
+  Skill.belongsTo(Category, { foreignKey: "CategoryId" });
 
   ConstructionSite.belongsToMany(UserAccount, {
     through: "SiteWorkers",
@@ -27,11 +27,11 @@ module.exports = (sequelize) => {
     as: "sites",
   });
 
-  ConstructionSite.belongsToMany(SkillsList, {
+  ConstructionSite.belongsToMany(Skill, {
     through: "SiteSkills",
     as: "skills",
   });
-  SkillsList.belongsToMany(ConstructionSite, {
+  Skill.belongsToMany(ConstructionSite, {
     through: "SiteSkills",
     as: "sites",
   });
@@ -55,7 +55,7 @@ module.exports = (sequelize) => {
   return {
     sequelize,
     Category,
-    SkillsList,
+    Skill,
     UserAccount,
     StakeHolder,
     ConstructionSite,
