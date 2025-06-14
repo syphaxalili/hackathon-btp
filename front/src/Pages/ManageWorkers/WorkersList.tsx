@@ -4,10 +4,13 @@ import { Button, Typography, Box } from "@mui/material";
 import { apiUrl } from "../../config";
 import { useAtom } from "jotai";
 import { userAtom } from "../../components/Atom/UserAtom";
+import { useNavigate } from "react-router-dom";
+import { log } from "console";
 
 const WorkersList = () => {
   const [rows, setRows] = useState([]);
   const [user] = useAtom(userAtom);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -40,7 +43,7 @@ const WorkersList = () => {
     {
       field: "userId",
       headerName: "ID",
-      hide: true,
+      flex: 0.5,
     },
     {
       field: "first_name",
@@ -57,9 +60,16 @@ const WorkersList = () => {
       headerName: "Statut",
       flex: 1,
       renderCell: (params) => (
-        <Typography color={params.value ? "green" : "red"}>
-          {params.value ? "Disponible" : "Indisponible"}
-        </Typography>
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          width="100%"
+        >
+          <Typography color={params.value ? "green" : "red"}>
+            {params.value ? "Disponible" : "Indisponible"}
+          </Typography>
+        </Box>
       ),
     },
     {
@@ -68,8 +78,14 @@ const WorkersList = () => {
       flex: 1.5,
       sortable: false,
       filterable: false,
+
       renderCell: (params) => (
-        <Box display="flex" gap={1}>
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          width="100%"
+        >
           <Button
             size="small"
             variant="outlined"
@@ -78,22 +94,6 @@ const WorkersList = () => {
           >
             Voir plus
           </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            color="warning"
-            onClick={() => handleEdit(params.row)}
-          >
-            Modifier
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            color="error"
-            onClick={() => handleDelete(params.row)}
-          >
-            Supprimer
-          </Button>
         </Box>
       ),
     },
@@ -101,18 +101,7 @@ const WorkersList = () => {
 
   // Exemple de gestion des actions
   const handleView = (row) => {
-    console.log("Voir plus :", row);
-    // redirige ou ouvre un modal si tu veux
-  };
-
-  const handleEdit = (row) => {
-    console.log("Modifier :", row);
-    // navigue ou ouvre un formulaire
-  };
-
-  const handleDelete = (row) => {
-    console.log("Supprimer :", row);
-    // appelle l’API pour suppression
+    navigate(`/dashbord/worker/${row.userId}`); // Passe l'ID dans l'URL
   };
 
   return (
@@ -131,6 +120,7 @@ const WorkersList = () => {
           </Button>
         </Box>
       )}
+
       <Box style={{ height: 500, width: "100%" }}>
         <DataGrid
           rows={rows}

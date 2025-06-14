@@ -16,6 +16,7 @@ import { apiUrl } from "./config";
 import WorkerInvitation from "./Pages/ManageWorkers/WorkerInvitation";
 import Logout from "./Pages/ManageAccount/Logout";
 import UpdateUserData from "./Pages/ManageAccount/UserDataUpdate";
+import WorkerSeeMore from "./Pages/ManageWorkers/WorkerSeeMore";
 
 function App() {
   const [user, setUser] = useAtom(userAtom);
@@ -150,6 +151,7 @@ function App() {
           }
         />
         <Route path="/dashbord/user/account" element={<UpdateUserData />} />
+        <Route path="/dashbord/worker/:id" element={<WorkerSeeMore />} />
       </Route>
     </Routes>
   );
