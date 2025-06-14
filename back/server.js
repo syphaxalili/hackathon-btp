@@ -28,7 +28,7 @@ app.use(express.json());
     const sequelize = db.getSequelize(); // récupère instance Sequelize
 
     const models = defineModels(sequelize); // initialise tes modèles ici
-    await sequelize.sync({ alter: true }); // synchronise les modèles avec la BDD
+    await sequelize.sync(); // synchronise les modèles avec la BDD
     console.log("✅ Base synchronisée.");
 
     // Middleware JSON

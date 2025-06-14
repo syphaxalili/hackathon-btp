@@ -32,7 +32,7 @@ const navItems = [
   {
     label: "Mon compte",
     icon: <AccountCircleIcon />,
-    path: "/dashboard/acceuil-4",
+    path: "/dashbord/user/account",
   },
 ];
 
