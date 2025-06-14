@@ -10,4 +10,5 @@ module.exports = (sequelize, DataTypes) =>
     first_name: { type: DataTypes.STRING, allowNull: false },
     last_name: { type: DataTypes.STRING, allowNull: false },
     is_actif: { type: DataTypes.BOOLEAN, defaultValue: true },
+    is_visible: { type: DataTypes.BOOLEAN, defaultValue: true },
   });

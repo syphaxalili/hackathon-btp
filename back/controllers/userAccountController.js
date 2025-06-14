@@ -180,6 +180,7 @@ class UserAccountController {
     try {
       const { UserAccount } = req.models;
       const { type } = req.query;
+      const currentUserId = req.user;
       let users;
 
       if (type) {
@@ -188,18 +189,26 @@ class UserAccountController {
         users = await UserAccount.findAll();
       }
 
-      // Convertir en objets simples et filtrer les champs utiles
-      const filteredUsers = users.map((user) => {
-        const plainUser = user.get({ plain: true }); // IMPORTANT
-        return {
-          id: plainUser.id,
-          email: plainUser.email,
-          first_name: plainUser.first_name,
-          last_name: plainUser.last_name,
-          user_type: plainUser.user_type,
-          is_actif: plainUser.is_actif,
-        };
-      });
+      // Exclure l'utilisateur courant de la liste
+      const filteredUsers = users
+        .filter(
+          (user) =>
+            user &&
+            user.id !== currentUserId.id &&
+            user.is_visible === true &&
+            user.is_actif === true
+        )
+        .map((user) => {
+          const plainUser = user.get({ plain: true });
+          return {
+            id: plainUser.id,
+            email: plainUser.email,
+            first_name: plainUser.first_name,
+            last_name: plainUser.last_name,
+            user_type: plainUser.user_type,
+            is_actif: plainUser.is_actif,
+          };
+        });
 
       return successResponse(res, filteredUsers);
     } catch (error) {
@@ -264,19 +273,24 @@ class UserAccountController {
     }
   }
 
-  // Delete a user
+  // Delete a user (soft delete)
   static async delete(req, res) {
     try {
       const { id } = req.params;
-      const user = await UserAccountModel.findById(id);
+      console.log("Deleting user with ID:", id);
+
+      const { UserAccount } = req.models;
+
+      const user = await UserAccount.findByPk(id);
 
       if (!user) {
         return notFoundResponse(res, "User");
       }
 
-      const { UserAccount } = req.models;
-      await UserAccount.delete(id);
-      return successResponse(res, { id }, 204);
+      // Mise à jour is_visible à false
+      await user.update({ is_visible: false });
+
+      return successResponse(res, { id });
     } catch (error) {
       return errorResponse(res, error.message);
     }

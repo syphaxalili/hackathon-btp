@@ -5,18 +5,24 @@ import { apiUrl } from "../../config";
 import { useAtom } from "jotai";
 import { userAtom } from "../../components/Atom/UserAtom";
 import { useNavigate } from "react-router-dom";
-import { log } from "console";
+import Cookies from "js-cookie";
+
 
 const WorkersList = () => {
   const [rows, setRows] = useState([]);
   const [user] = useAtom(userAtom);
   const navigate = useNavigate();
+  const token = Cookies.get("token"); // Assurez-vous que le token est récupéré correctement
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const response = await fetch(`${apiUrl}/users/all`, {
           credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Assurez-vous que le token est correctement passé
+          },
         });
         const data = await response.json();
 

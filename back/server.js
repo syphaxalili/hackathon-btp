@@ -24,8 +24,8 @@ app.use(express.json());
 
 (async () => {
   try {
-    await db.initialize(); // Crée la BDD et connecte Sequelize
-    const sequelize = db.getSequelize(); // récupère instance Sequelize
+    await db.initialize({ alter: true }); // Crée la BDD et connecte Sequelize
+    const sequelize = db.getSequelize(); // récupère instance Sequelize et met à jour la BDD (ajoute/modifie tables sans perte de données)
 
     const models = defineModels(sequelize); // initialise tes modèles ici
     await sequelize.sync(); // synchronise les modèles avec la BDD
