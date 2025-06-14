@@ -10,15 +10,22 @@ import Unauthorized from "./components/Atom/Unauthorized";
 import MainLayout from "./layouts/MainLayout";
 import Page1 from "./Pages/Page1";
 import Page2 from "./Pages/Page2";
-import WorkersList from "./Pages/WorkersList";
+import WorkersList from "./Pages/ManageWorkers/WorkersList";
 import { PrivateRoute } from "./components/Atom/PrivateRoute";
 import { apiUrl } from "./config";
+import WorkerInvitation from "./Pages/ManageWorkers/WorkerInvitation";
 
 function App() {
-  const [, setUser] = useAtom(userAtom);
+  const [user, setUser] = useAtom(userAtom);
   const navigate = useNavigate();
   const token = Cookies.get("token");
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user?.id > 0 && window.location.pathname === "/") {
+      navigate("/dashbord");
+    }
+  }, [user, navigate]);
 
   // Fonction getDataUser mémorisée avec useCallback
   const getDataUser = useCallback(async () => {
@@ -29,6 +36,7 @@ function App() {
         user_type: "",
       });
       setLoading(false); // fin du chargement
+      navigate("/");
       return;
     }
 
@@ -57,6 +65,7 @@ function App() {
           email: "",
           user_type: "",
         });
+        navigate("/");
       }
     } catch (error) {
       console.error("Erreur lors de la récupération utilisateur :", error);
@@ -122,6 +131,15 @@ function App() {
           }
         />
         <Route path="/dashbord/ouvriers" element={<WorkersList />} />
+        <Route
+          path="/dashbord/invite/user"
+          element={
+            <PrivateRoute
+              conditionsEvery={[{ field: "user_type", allowedValues: ["AD"] }]}
+              component={WorkerInvitation}
+            />
+          }
+        />
       </Route>
     </Routes>
   );

@@ -35,13 +35,13 @@ const ConnectButton = styled(Button)`
   }
 `;
 
-export default function Home() {
+const Home = () => {
+  const navigate = useNavigate();
   const [userData, setUserData] = useState({
     email: "",
     password: "",
   });
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
   const [user, setUser] = useAtom(userAtom);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -227,4 +227,5 @@ export default function Home() {
       </AnimatedPaper>
     </Box>
   );
-}
+};
+export default Home;

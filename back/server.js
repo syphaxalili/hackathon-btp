@@ -9,7 +9,7 @@ const routes = require("./routes");
 const app = express();
 const PORT = 5500;
 
-// ⚠️ Cors configuration
+// Cors configuration
 app.use(
   cors({
     origin: "http://localhost:5173",
