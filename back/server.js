@@ -3,6 +3,7 @@ const express = require("express");
 const db = require("./config/db");
 const defineModels = require("./models"); // <- initialise les modèles
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 
 const routes = require("./routes");
 
@@ -21,6 +22,9 @@ app.use(
 
 // JSON middleware
 app.use(express.json());
+
+// Cookie parser middleware
+app.use(cookieParser());
 
 (async () => {
   try {

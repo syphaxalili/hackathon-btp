@@ -16,7 +16,9 @@ import {
   DialogActions,
   TextField,
   Box,
-  IconButton
+  IconButton,
+  Alert,
+  Snackbar
 } from '@mui/material';
 import { Add, Edit, Delete } from '@mui/icons-material';
 import { apiUrl } from '../config';
@@ -43,79 +45,238 @@ const SkillsManagement: React.FC = () => {
   const [currentCategory, setCurrentCategory] = useState<Partial<Category>>({});
   const [currentSkill, setCurrentSkill] = useState<Partial<Skill>>({});
   const [editing, setEditing] = useState(false);
-  const token = Cookies.get("token"); // Assurez-vous que le token est récupéré correctement
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  
+  const token = Cookies.get("token");
+
+  // Fonction utilitaire pour les appels API
+  const apiCall = async (url: string, options: RequestInit = {}) => {
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+
+    // Ne pas ajouter l'en-tête d'autorisation si le token n'est pas défini
+    // Cela permet aux routes publiques de fonctionner
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${apiUrl}${url}`, {
+      ...options,
+      headers,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Erreur inconnue' }));
+      throw new Error(errorData.message || `Erreur ${response.status}`);
+    }
+
+    // Pour les réponses 204 (No Content), ne pas essayer de parser le JSON
+    if (response.status === 204) {
+      return null;
+    }
+
+    return response.json();
+  };
 
   // Charger les données initiales
   useEffect(() => {
-    const fetchCategories = async () => {
-      await fetch(`${apiUrl}/categories`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      }).then(res => res.json()).then(({data}) => {
-        console.log(`Categories :`,data);
-        setCategories(data);
-      });
-    }
-    const fetchSkills = async () => {
-      await fetch(`${apiUrl}/skills`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      }).then(res => res.json()).then(({data}) => {
-        console.log(`Skills :`,data);
-        setSkills(data);
-      });
-    }
-    fetchCategories();
-    fetchSkills();
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [categoriesResponse, skillsResponse] = await Promise.all([
+          apiCall('/categories'),
+          apiCall('/skills')
+        ]);
+        
+        setCategories(categoriesResponse.data || []);
+        setSkills(skillsResponse.data || []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erreur lors du chargement des données');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  const handleCategorySubmit = () => {
-    // Ici, vous devrez appeler votre API pour créer/mettre à jour une catégorie
-    if (editing && currentCategory.id) {
+  // CRUD Catégories
+  const createCategory = async (categoryData: Partial<Category>) => {
+    try {
+      const response = await apiCall('/categories', {
+        method: 'POST',
+        body: JSON.stringify({ name: categoryData.name }),
+      });
+      
+      const newCategory = response.data;
+      setCategories([...categories, { ...newCategory, skills: [] }]);
+      setSuccess('Catégorie créée avec succès');
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la création');
+    }
+  };
+
+  const updateCategory = async (id: number, categoryData: Partial<Category>) => {
+    try {
+      const response = await apiCall(`/categories/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ name: categoryData.name }),
+      });
+      
+      const updatedCategory = response.data;
       setCategories(categories.map(cat => 
-        cat.id === currentCategory.id ? { ...cat, ...currentCategory } as Category : cat
+        cat.id === id ? { ...cat, ...updatedCategory } : cat
       ));
-    } else {
-      const newCategory = {
-        ...currentCategory,
-        id: categories.length + 1,
-        skills: []
-      } as Category;
-      setCategories([...categories, newCategory]);
+      setSuccess('Catégorie mise à jour avec succès');
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour');
     }
-    setOpenCategoryDialog(false);
   };
 
-  const handleSkillSubmit = () => {
-    // Ici, vous devrez appeler votre API pour créer/mettre à jour une compétence
-    if (editing && currentSkill.id) {
-      setSkills(skills.map(skill => 
-        skill.id === currentSkill.id ? { ...skill, ...currentSkill } as Skill : skill
-      ));
-    } else {
-      const newSkill = {
-        ...currentSkill,
-        id: skills.length + 1,
-      } as Skill;
+  const deleteCategory = async (id: number) => {
+    try {
+      await apiCall(`/categories/${id}`, {
+        method: 'DELETE',
+      });
+      
+      setCategories(categories.filter(cat => cat.id !== id));
+      // Supprimer aussi les compétences liées à cette catégorie
+      setSkills(skills.filter(skill => skill.CategoryId !== id));
+      setSuccess('Catégorie supprimée avec succès');
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la suppression');
+    }
+  };
+
+  // CRUD Compétences
+  const createSkill = async (skillData: Partial<Skill>) => {
+    try {
+      const response = await apiCall('/skills', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          name: skillData.name,
+          description: skillData.description,
+          CategoryId: skillData.CategoryId 
+        }),
+      });
+      
+      const newSkill = response.data;
       setSkills([...skills, newSkill]);
+      setSuccess('Compétence créée avec succès');
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la création');
     }
-    setOpenSkillDialog(false);
   };
 
-  const handleDeleteCategory = (id: number) => {
-    // Ici, vous devrez appeler votre API pour supprimer une catégorie
-    setCategories(categories.filter(cat => cat.id !== id));
+  const updateSkill = async (id: number, skillData: Partial<Skill>) => {
+    try {
+      const response = await apiCall(`/skills/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ 
+          name: skillData.name,
+          description: skillData.description,
+          CategoryId: skillData.CategoryId 
+        }),
+      });
+      
+      const updatedSkill = response.data;
+      setSkills(skills.map(skill => 
+        skill.id === id ? updatedSkill : skill
+      ));
+      setSuccess('Compétence mise à jour avec succès');
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour');
+    }
   };
 
-  const handleDeleteSkill = (id: number) => {
-    // Ici, vous devrez appeler votre API pour supprimer une compétence
-    setSkills(skills.filter(skill => skill.id !== id));
+  const deleteSkill = async (id: number) => {
+    try {
+      await apiCall(`/skills/${id}`, {
+        method: 'DELETE',
+      });
+      
+      setSkills(skills.filter(skill => skill.id !== id));
+      setSuccess('Compétence supprimée avec succès');
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la suppression');
+    }
+  };
+
+  // Handlers pour les dialogues
+  const handleCategorySubmit = async () => {
+    if (!currentCategory.name?.trim()) {
+      setError('Le nom de la catégorie est requis');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (editing && currentCategory.id) {
+        await updateCategory(currentCategory.id, currentCategory);
+      } else {
+        await createCategory(currentCategory);
+      }
+      setOpenCategoryDialog(false);
+      setCurrentCategory({});
+      setEditing(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de l\'opération');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSkillSubmit = async () => {
+    if (!currentSkill.name?.trim()) {
+      setError('Le nom de la compétence est requis');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (editing && currentSkill.id) {
+        await updateSkill(currentSkill.id, currentSkill);
+      } else {
+        await createSkill(currentSkill);
+      }
+      setOpenSkillDialog(false);
+      setCurrentSkill({});
+      setEditing(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de l\'opération');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCategory = async (id: number) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ? Toutes les compétences associées seront également supprimées.')) {
+      setLoading(true);
+      try {
+        await deleteCategory(id);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erreur lors de la suppression');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleDeleteSkill = async (id: number) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette compétence ?')) {
+      setLoading(true);
+      try {
+        await deleteSkill(id);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erreur lors de la suppression');
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   const handleEditCategory = (category: Category) => {
@@ -151,6 +312,7 @@ const SkillsManagement: React.FC = () => {
             setEditing(false);
             setOpenCategoryDialog(true);
           }}
+          disabled={loading}
         >
           Ajouter une catégorie
         </Button>
@@ -161,10 +323,18 @@ const SkillsManagement: React.FC = () => {
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
             <Typography variant="h6">{category.name}</Typography>
             <Box>
-              <IconButton onClick={() => handleEditCategory(category)} color="primary">
+              <IconButton 
+                onClick={() => handleEditCategory(category)} 
+                color="primary"
+                disabled={loading}
+              >
                 <Edit />
               </IconButton>
-              <IconButton onClick={() => handleDeleteCategory(category.id)} color="error">
+              <IconButton 
+                onClick={() => handleDeleteCategory(category.id)} 
+                color="error"
+                disabled={loading}
+              >
                 <Delete />
               </IconButton>
               <Button 
@@ -173,6 +343,7 @@ const SkillsManagement: React.FC = () => {
                 startIcon={<Add />}
                 onClick={() => handleAddSkill(category.id)}
                 sx={{ ml: 1 }}
+                disabled={loading}
               >
                 Ajouter une compétence
               </Button>
@@ -195,10 +366,19 @@ const SkillsManagement: React.FC = () => {
                       <TableCell>{skill.name}</TableCell>
                       <TableCell>{skill.description}</TableCell>
                       <TableCell align="right">
-                        <IconButton onClick={() => handleEditSkill(skill)} size="small">
+                        <IconButton 
+                          onClick={() => handleEditSkill(skill)} 
+                          size="small"
+                          disabled={loading}
+                        >
                           <Edit fontSize="small" />
                         </IconButton>
-                        <IconButton onClick={() => handleDeleteSkill(skill.id)} size="small" color="error">
+                        <IconButton 
+                          onClick={() => handleDeleteSkill(skill.id)} 
+                          size="small" 
+                          color="error"
+                          disabled={loading}
+                        >
                           <Delete fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -221,12 +401,21 @@ const SkillsManagement: React.FC = () => {
               onChange={(e) => setCurrentCategory({...currentCategory, name: e.target.value})}
               fullWidth
               margin="normal"
+              required
+              disabled={loading}
             />
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenCategoryDialog(false)}>Annuler</Button>
-          <Button onClick={handleCategorySubmit} variant="contained" color="primary">
+          <Button onClick={() => setOpenCategoryDialog(false)} disabled={loading}>
+            Annuler
+          </Button>
+          <Button 
+            onClick={handleCategorySubmit} 
+            variant="contained" 
+            color="primary"
+            disabled={loading}
+          >
             {editing ? 'Mettre à jour' : 'Créer'}
           </Button>
         </DialogActions>
@@ -243,6 +432,8 @@ const SkillsManagement: React.FC = () => {
               onChange={(e) => setCurrentSkill({...currentSkill, name: e.target.value})}
               fullWidth
               margin="normal"
+              required
+              disabled={loading}
             />
             <TextField
               label="Description"
@@ -252,16 +443,47 @@ const SkillsManagement: React.FC = () => {
               multiline
               rows={3}
               margin="normal"
+              disabled={loading}
             />
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenSkillDialog(false)}>Annuler</Button>
-          <Button onClick={handleSkillSubmit} variant="contained" color="primary">
+          <Button onClick={() => setOpenSkillDialog(false)} disabled={loading}>
+            Annuler
+          </Button>
+          <Button 
+            onClick={handleSkillSubmit} 
+            variant="contained" 
+            color="primary"
+            disabled={loading}
+          >
             {editing ? 'Mettre à jour' : 'Créer'}
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Notifications */}
+      <Snackbar 
+        open={!!error} 
+        autoHideDuration={6000} 
+        onClose={() => setError(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setError(null)} severity="error" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar 
+        open={!!success} 
+        autoHideDuration={4000} 
+        onClose={() => setSuccess(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSuccess(null)} severity="success" sx={{ width: '100%' }}>
+          {success}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

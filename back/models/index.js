@@ -15,8 +15,16 @@ module.exports = (sequelize) => {
   // NOTE: AbstractGeolocation n'est pas un modèle Sequelize, donc on ne l'instancie pas ici
 
   // Associations entre modèles
-  Category.hasMany(Skill, { foreignKey: "CategoryId" });
-  Skill.belongsTo(Category, { foreignKey: "CategoryId" });
+  Category.hasMany(Skill, { 
+    foreignKey: "CategoryId",
+    onDelete: 'CASCADE',
+    hooks: true,
+    constraints: true,
+  });
+  Skill.belongsTo(Category, { 
+    foreignKey: "CategoryId",
+    onDelete: 'CASCADE'
+  });
 
   ConstructionSite.belongsToMany(UserAccount, {
     through: "SiteWorkers",
