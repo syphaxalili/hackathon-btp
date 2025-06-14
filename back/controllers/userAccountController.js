@@ -146,7 +146,7 @@ class UserAccountController {
     }
   }
 
-    // Get current user profile
+  // Get current user profile
   static async getMe(req, res) {
     try {
       // Vérifie que l'utilisateur a été injecté par le middleware d'auth
@@ -174,7 +174,6 @@ class UserAccountController {
       return errorResponse(res, error.message || "Server error");
     }
   }
-
 
   // Get all users (with optional filtering by type)
   static async getAll(req, res) {
@@ -230,32 +229,31 @@ class UserAccountController {
   // Update a user
   static async update(req, res) {
     try {
-      const { id } = req.params;
-      const { password, ...updateData } = req.body;
+      const id = req.user.id;
+      const { password, first_name, last_name } = req.body;
       const { UserAccount } = req.models;
 
-      // Check if user exists
-      const user = await UserAccount.findById(id);
-      if (!user) {
-        return notFoundResponse(res, "User");
-      }
+      const user = await UserAccount.findByPk(id);
+      if (!user) return notFoundResponse(res, "User");
 
-      // If password is being updated, hash it
+      const updateFields = {};
+      if (first_name) updateFields.first_name = first_name;
+      if (last_name) updateFields.last_name = last_name;
+
       if (password) {
+        console.log("password", password);
+
         const hashedPassword = await bcrypt.hash(password, 10);
-        await UserAccount.updatePassword(id, hashedPassword);
+        updateFields.password = hashedPassword; // ⚠️ ou quel que soit ton nom de champ réel
       }
 
-      // Update other user data if provided
-      if (Object.keys(updateData).length > 0) {
-        await UserAccount.update(id, updateData);
-      }
+      if (Object.keys(updateFields).length === 0)
+        return errorResponse(res, "Aucune donnée à mettre à jour.", 400);
 
-      const updatedUser = await UserAccount.findById(id);
+      await UserAccount.update(updateFields, { where: { id } });
 
-      // Remove sensitive data from response
-      delete updatedUser.password_hash;
-
+      const updatedUser = await UserAccount.findByPk(id);
+if (updatedUser) delete updatedUser.dataValues.password;
       return successResponse(res, updatedUser);
     } catch (error) {
       return errorResponse(res, error.message);
@@ -279,7 +277,6 @@ class UserAccountController {
       return errorResponse(res, error.message);
     }
   }
-
 
   // Add a skill to a user
   static async addSkill(req, res) {

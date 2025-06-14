@@ -10,6 +10,11 @@ router.post(
   AuthMiddleware.authenticateToken,
   UserAccountController.inviteUser
 );
+router.put(
+  "/update",
+  AuthMiddleware.authenticateToken,
+  UserAccountController.update
+);
 // router.get('/:id', authenticateToken, UserAccountController.getById);
 // router.put('/:id', authenticateToken, UserAccountController.update);
 // router.delete('/:id', authenticateToken, checkRole(['admin']), UserAccountController.delete);

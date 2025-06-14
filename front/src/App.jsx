@@ -15,6 +15,7 @@ import { PrivateRoute } from "./components/Atom/PrivateRoute";
 import { apiUrl } from "./config";
 import WorkerInvitation from "./Pages/ManageWorkers/WorkerInvitation";
 import Logout from "./Pages/ManageAccount/Logout";
+import UpdateUserData from "./Pages/ManageAccount/UserDataUpdate";
 
 function App() {
   const [user, setUser] = useAtom(userAtom);
@@ -35,6 +36,8 @@ function App() {
         id: 0,
         email: "",
         user_type: "",
+        first_name: "",
+        last_name: "",
       });
       setLoading(false); // fin du chargement
       navigate("/");
@@ -59,12 +62,16 @@ function App() {
           id: data.data.user.id,
           email: data.data.user.email,
           user_type: data.data.user.user_type,
+          first_name: data.data.user.first_name,
+          last_name: data.data.user.last_name,
         });
       } else {
         setUser({
           id: 0,
           email: "",
           user_type: "",
+          first_name: "",
+          last_name: "",
         });
         navigate("/");
       }
@@ -142,6 +149,7 @@ function App() {
             />
           }
         />
+        <Route path="/dashbord/user/account" element={<UpdateUserData />} />
       </Route>
     </Routes>
   );
