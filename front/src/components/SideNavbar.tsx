@@ -14,7 +14,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import CategoryIcon from "@mui/icons-material/Category";
+import CategoryIcon from '@mui/icons-material/Category';
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAtom } from "jotai";
 import { User, userAtom } from "./Atom/UserAtom";
@@ -40,7 +40,7 @@ const publicNavItems = [
 const privateNavItems = [
   {
     label: "Gestion compétences",
-    icon: <SettingsIcon />,
+    icon: <CategoryIcon />,
     path: "/dashbord/skills",
   }
 ];
