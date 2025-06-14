@@ -1,6 +1,8 @@
 const { successResponse, errorResponse, notFoundResponse } = require("./utils");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const EmailService = require("../middlewares/sendEMail");
 
 class UserAccountController {
   static async create(req, res) {
@@ -35,6 +37,66 @@ class UserAccountController {
       delete newUser.password_hash;
 
       return successResponse(res, newUser, 201);
+    } catch (error) {
+      return errorResponse(res, error.message);
+    }
+  }
+
+  static async inviteUser(req, res) {
+    try {
+      const { UserAccount } = req.models;
+      const { email, user_type, firstname, lastname, ...userData } = req.body;
+
+      if (!email || !user_type || !firstname || !lastname) {
+        return errorResponse(
+          res,
+          "Email, user_type, firstname, and lastname are required",
+          400
+        );
+      }
+
+      // Vérifie si l'utilisateur existe déjà
+      const existingUser = await UserAccount.findOne({ where: { email } });
+      if (existingUser) {
+        return errorResponse(res, "User already exists with this email", 409);
+      }
+
+      // Génère un mot de passe aléatoire
+      const randomPassword = crypto.randomBytes(8).toString("hex");
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+      // Crée le nouvel utilisateur
+      const newUser = await UserAccount.create({
+        email: email,
+        password: hashedPassword,
+        user_type: user_type,
+        first_name: firstname,
+        last_name: lastname,
+        ...userData,
+      });
+
+      // Email HTML à envoyer
+      const htmlContent = `
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2>Bienvenue ${firstname} ${lastname},</h2>
+        <p>Un compte a été créé pour vous.</p>
+        <p><strong>Votre email :</strong> ${email}</p>
+        <p><strong>Votre mot de passe :</strong> ${randomPassword}</p>
+        <p>Merci et bonne connexion !</p>
+      </div>
+    `;
+
+      // Envoi de l'email
+      await EmailService.sendEmail(
+        email,
+        "Votre compte a été créé",
+        htmlContent
+      );
+
+      const userJson = newUser.toJSON();
+      delete userJson.password;
+
+      return successResponse(res, userJson, 201);
     } catch (error) {
       return errorResponse(res, error.message);
     }
