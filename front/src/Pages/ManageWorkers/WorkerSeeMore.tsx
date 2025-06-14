@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -10,6 +10,8 @@ import {
 } from "@mui/material";
 import { apiUrl } from "../../config";
 import Cookies from "js-cookie";
+import { useAtom } from "jotai";
+import { userAtom } from "../../components/Atom/UserAtom";
 
 type Worker = {
   first_name: string;
@@ -24,6 +26,8 @@ const WorkerSeeMore = () => {
   const { id } = useParams();
   const [worker, setWorker] = useState<Worker | null>(null);
   const [newSkill, setNewSkill] = useState("");
+  const [user] = useAtom(userAtom);
+  const navigate = useNavigate();
 
   const token = Cookies.get("token");
 
@@ -57,8 +61,8 @@ const WorkerSeeMore = () => {
 
   const handleDeactivate = async () => {
     try {
-      const res = await fetch(`${apiUrl}/users/${id}/deactivate`, {
-        method: "PATCH",
+      const res = await fetch(`${apiUrl}/users/delete/${id}`, {
+        method: "POST",
         credentials: "include",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -67,7 +71,7 @@ const WorkerSeeMore = () => {
 
       const data = await res.json();
       if (data.success) {
-        setWorker((prev) => (prev ? { ...prev, is_actif: false } : prev));
+        navigate("/dashbord/ouvriers");
       }
     } catch (err) {
       console.error("Erreur lors de la désactivation :", err);
@@ -128,19 +132,20 @@ const WorkerSeeMore = () => {
           Ajouter
         </Button>
       </Paper>
-
-      <Box
-        position="fixed"
-        bottom={16}
-        left={16}
-        right={16}
-        display="flex"
-        justifyContent="center"
-      >
-        <Button variant="outlined" color="error" onClick={handleDeactivate}>
-          Rendre inactif l'utilisateur
-        </Button>
-      </Box>
+      {user.user_type === "AD" && (
+        <Box
+          position="fixed"
+          bottom={16}
+          left={16}
+          right={16}
+          display="flex"
+          justifyContent="center"
+        >
+          <Button variant="outlined" color="error" onClick={handleDeactivate}>
+            Rendre inactif l'utilisateur
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 };

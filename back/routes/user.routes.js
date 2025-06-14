@@ -4,7 +4,11 @@ const { UserAccountController } = require("../controllers");
 const AuthMiddleware = require("../middlewares/AuthMiddleware");
 
 // Routes utilisateur
-router.get("/all", UserAccountController.getAll);
+router.get(
+  "/all",
+  AuthMiddleware.authenticateToken,
+  UserAccountController.getAll
+);
 router.post(
   "/invite",
   AuthMiddleware.authenticateToken,
@@ -21,6 +25,10 @@ router.get(
   UserAccountController.getById
 );
 // router.put('/:id', authenticateToken, UserAccountController.update);
-// router.delete('/:id', authenticateToken, checkRole(['admin']), UserAccountController.delete);
+router.post(
+  "/delete/:id",
+  AuthMiddleware.authenticateToken,
+  UserAccountController.delete
+);
 
 module.exports = router;
