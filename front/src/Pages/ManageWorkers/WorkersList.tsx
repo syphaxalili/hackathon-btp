@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { Button, Typography, Box } from "@mui/material";
-import { apiUrl } from "../config";
+import { apiUrl } from "../../config";
 import { useAtom } from "jotai";
-import { userAtom } from "../components/Atom/UserAtom";
+import { userAtom } from "../../components/Atom/UserAtom";
 
 const WorkersList = () => {
   const [rows, setRows] = useState([]);
-  const [user] = useAtom(userAtom); 
+  const [user] = useAtom(userAtom);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -19,7 +19,7 @@ const WorkersList = () => {
 
         if (data.success) {
           // ajoute un id pour chaque ligne (obligatoire pour DataGrid)
-          const formatted = data.data.map((user, index) => ({
+          const formatted = data.data.map((user: any, index: number) => ({
             id: index + 1,
             userId: user.id, // caché
             first_name: user.first_name,
@@ -125,7 +125,7 @@ const WorkersList = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => window.location.assign("/dashbords/invite/user")}
+            onClick={() => window.location.assign("/dashbord/invite/user")}
           >
             Inviter un utilisateur
           </Button>

@@ -36,7 +36,7 @@ const navItems = [
   },
 ];
 
-export default function Sidebar() {
+const SideNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -117,4 +117,6 @@ export default function Sidebar() {
       </Box>
     </Drawer>
   );
-}
+};
+
+export default SideNavbar;

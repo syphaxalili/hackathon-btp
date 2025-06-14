@@ -2,7 +2,7 @@ import { useAtom } from "jotai";
 import React from "react";
 import { userAtom } from "../components/Atom/UserAtom";
 
-const Page1: React.FC = () => {
+const Page1 = () => {
   const [user] = useAtom(userAtom);
 
   return (
