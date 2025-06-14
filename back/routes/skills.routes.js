@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { SkillsListController } = require('../controllers');
-const { authenticateToken, checkRole } = require('./middleware');
+const { skillController } = require('../controllers');
+const AuthMiddleware = require("../middlewares/AuthMiddleware");
+
 
 // Routes des compétences
-router.get('/', SkillsListController.getAll);
-router.get('/:id', SkillsListController.getById);
-router.get('/categories/:categoryId/skills', SkillsListController.getByCategory);
-router.post('/', authenticateToken, checkRole(['admin']), SkillsListController.create);
-router.put('/:id', authenticateToken, checkRole(['admin']), SkillsListController.update);
-router.delete('/:id', authenticateToken, checkRole(['admin']), SkillsListController.delete);
+router.get('/', skillController.getAll);
+router.get('/:id', skillController.getById);
+router.get('/categories/:categoryId/skills', skillController.getByCategory);
+router.post('/', AuthMiddleware.authenticateToken, skillController.create);
+router.put('/:id', AuthMiddleware.authenticateToken, skillController.update);
+router.delete('/:id', AuthMiddleware.authenticateToken, skillController.delete);
 
 module.exports = router;

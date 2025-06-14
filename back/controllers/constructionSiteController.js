@@ -14,7 +14,7 @@ class ConstructionSiteController {
         required_skills,
         ...otherData 
       } = req.body;
-      const { ConstructionSite, StakeHolder, SkillsList } = req.models;
+      const { ConstructionSite, StakeHolder, Skill } = req.models;
 
       // Validate required fields
       if (!name || !start_date || !stakeholder_id) {
@@ -41,7 +41,7 @@ class ConstructionSiteController {
       // Add required skills if provided
       if (required_skills && Array.isArray(required_skills)) {
         for (const skillId of required_skills) {
-          const skill = await SkillsList.findById(skillId);
+          const skill = await Skill.findById(skillId);
           if (skill) {
             await ConstructionSite.addRequiredSkill(siteId, skillId);
           }
@@ -251,7 +251,7 @@ class ConstructionSiteController {
   static async addRequiredSkill(req, res) {
     try {
       const { siteId, skillId } = req.params;
-      const { ConstructionSite, SkillsList } = req.models;
+      const { ConstructionSite, Skill } = req.models;
       
       // Check if site exists
       const site = await ConstructionSite.findById(siteId);
@@ -260,7 +260,7 @@ class ConstructionSiteController {
       }
       
       // Check if skill exists
-      const skill = await SkillsList.findById(skillId);
+      const skill = await Skill.findById(skillId);
       if (!skill) {
         return notFoundResponse(res, 'Skill');
       }

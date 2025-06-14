@@ -14,13 +14,14 @@ import PeopleIcon from "@mui/icons-material/People";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import CategoryIcon from '@mui/icons-material/Category';
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAtom } from "jotai";
 import { User, userAtom } from "./Atom/UserAtom";
 
 const drawerWidth = 240;
 
-const navItems = [
+const publicNavItems = [
   { label: "Dashbord", icon: <DashboardIcon />, path: "/dashbord" },
   { label: "Chantier", icon: <HomeIcon />, path: "/dashbord/acceuil2" },
   { label: "Mes ouvriers", icon: <PeopleIcon />, path: "/dashbord/ouvriers" },
@@ -34,6 +35,14 @@ const navItems = [
     icon: <AccountCircleIcon />,
     path: "/dashbord/user/account",
   },
+];
+
+const privateNavItems = [
+  {
+    label: "Gestion compétences",
+    icon: <CategoryIcon />,
+    path: "/dashbord/skills",
+  }
 ];
 
 const SideNavbar = () => {
@@ -67,7 +76,7 @@ const SideNavbar = () => {
     >
       <Box>
         <List>
-          {navItems.map((item) => {
+          {publicNavItems.map((item) => {
             const selected = location.pathname === item.path;
             return (
               <ListItem
@@ -96,13 +105,34 @@ const SideNavbar = () => {
           })}
         </List>
         <Divider />
-        {user && user.user_type === "admin" && (
-          <ListItem onClick={handleLogout} sx={{ cursor: "pointer" }}>
-            <ListItemIcon>
-              <LogoutIcon />
-            </ListItemIcon>
-            <ListItemText primary="Ma route privée" />
-          </ListItem>
+        {user && user.user_type === "AD" && (
+          privateNavItems.map((item) => {
+            const selected = location.pathname === item.path;
+            return (
+              <ListItem
+                key={item.path}
+                onClick={() => handleNavigation(item.path)}
+                sx={{
+                  cursor: "pointer",
+                  color: selected ? "#fff" : "inherit",
+                  background: selected ? "#1976d2" : "transparent",
+                  borderRadius: selected ? "8px" : 0,
+                  border: selected ? "2px solid #fff" : "none",
+                  mx: 1,
+                  my: 0.5,
+                  "&:hover": {
+                    background: "#1565c0",
+                    color: "#fff",
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ color: selected ? "#fff" : "inherit" }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText primary={item.label} />
+              </ListItem>
+            );
+          })
         )}
       </Box>
 

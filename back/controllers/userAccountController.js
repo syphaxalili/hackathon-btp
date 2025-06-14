@@ -308,7 +308,7 @@ class UserAccountController {
       }
 
       // Check if skill exists
-      const skill = await SkillsListModel.findById(skillId);
+      const skill = await SkillModel.findById(skillId);
       if (!skill) {
         return notFoundResponse(res, "Skill");
       }

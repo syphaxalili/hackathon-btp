@@ -1,25 +1,26 @@
 const { successResponse, errorResponse, notFoundResponse } = require('./utils');
 
-class SkillsListController {
+class skillController {
   // Create a new skill
   static async create(req, res) {
     try {
-      const { name, category_id } = req.body;
-      const { SkillsList, Category } = req.models;
+      const { name, CategoryId } = req.body;
+      const { Skill, Category } = req.models;
       
       // Validate input
-      if (!name || !category_id) {
-        return errorResponse(res, 'Name and category_id are required', 400);
+      if (!name || !CategoryId) {
+        return errorResponse(res, 'Name and CategoryId are required', 400);
       }
       
-      // Check if category exists
-      const category = await Category.findById(category_id);
+      const category = await Category.findByPk(CategoryId);
       if (!category) {
         return notFoundResponse(res, 'Category');
       }
       
-      const skillId = await SkillsList.create({ name, category_id });
-      const newSkill = await SkillsList.findById(skillId);
+      const skillId = await Skill.create({ name, CategoryId });
+      const serializedSkillId =
+        skillId && skillId.toJSON ? skillId.toJSON() : skillId;
+      const newSkill = await Skill.findByPk(serializedSkillId.id);
       
       return successResponse(res, newSkill, 201);
     } catch (error) {
@@ -30,8 +31,8 @@ class SkillsListController {
   // Get all skills with category information
   static async getAll(req, res) {
     try {
-      const { SkillsList } = req.models;
-      const skills = await SkillsList.findAll();
+      const { Skill } = req.models;
+      const skills = await Skill.findAll();
       return successResponse(res, skills);
     } catch (error) {
       return errorResponse(res, error.message);
@@ -42,8 +43,8 @@ class SkillsListController {
   static async getById(req, res) {
     try {
       const { id } = req.params;
-      const { SkillsList } = req.models;
-      const skill = await SkillsList.findById(id);
+      const { Skill } = req.models;
+      const skill = await Skill.findByPk(id);
       
       if (!skill) {
         return notFoundResponse(res, 'Skill');
@@ -59,15 +60,15 @@ class SkillsListController {
   static async getByCategory(req, res) {
     try {
       const { categoryId } = req.params;
-      const { SkillsList, Category } = req.models;
+      const { Skill, Category } = req.models;
       
       // Check if category exists
-      const category = await Category.findById(categoryId);
+      const category = await Category.findByPk(categoryId);
       if (!category) {
         return notFoundResponse(res, 'Category');
       }
       
-      const skills = await SkillsList.findByCategory(categoryId);
+      const skills = await Skill.findByCategory(categoryId);
       return successResponse(res, skills);
     } catch (error) {
       return errorResponse(res, error.message);
@@ -78,29 +79,29 @@ class SkillsListController {
   static async update(req, res) {
     try {
       const { id } = req.params;
-      const { name, category_id } = req.body;
-      const { SkillsList, Category } = req.models;
+      const { name, description, CategoryId } = req.body;
+      const { Skill, Category } = req.models;
       
-      // Check if skill exists
-      const skill = await SkillsList.findById(id);
+      const skill = await Skill.findByPk(id);
       if (!skill) {
         return notFoundResponse(res, 'Skill');
       }
       
-      // If updating category_id, check if the new category exists
-      if (category_id && category_id !== skill.category_id) {
-        const category = await Category.findById(category_id);
+      if (CategoryId && CategoryId !== skill.CategoryId) {
+        const category = await Category.findByPk(CategoryId);
         if (!category) {
           return notFoundResponse(res, 'Category');
         }
       }
       
-      await SkillsList.update(id, { 
+      await Skill.update({ 
         name: name || skill.name, 
-        category_id: category_id || skill.category_id 
-      });
+        description: description || skill.description,
+        CategoryId: CategoryId || skill.CategoryId 
+      }, { where: { id } });
       
-      const updatedSkill = await SkillsList.findById(id);
+      
+      const updatedSkill = await Skill.findByPk(id);
       return successResponse(res, updatedSkill);
     } catch (error) {
       return errorResponse(res, error.message);
@@ -111,14 +112,14 @@ class SkillsListController {
   static async delete(req, res) {
     try {
       const { id } = req.params;
-      const { SkillsList } = req.models;
-      const skill = await SkillsList.findById(id);
+      const { Skill } = req.models;
+      const skill = await Skill.findByPk(id);
       
       if (!skill) {
         return notFoundResponse(res, 'Skill');
       }
       
-      await SkillsList.delete(id);
+      await Skill.destroy({ where: { id } });
       return successResponse(res, { id }, 204);
     } catch (error) {
       return errorResponse(res, error.message);
@@ -126,4 +127,4 @@ class SkillsListController {
   }
 }
 
-module.exports = SkillsListController;
+module.exports = skillController;

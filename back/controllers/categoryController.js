@@ -4,21 +4,24 @@ class CategoryController {
   // Create a new category
   static async create(req, res) {
     try {
-      const { name } = req.body;
+      const name = req.body;
       const { Category } = req.models;
-      
+
       if (!name) {
-        return errorResponse(res, 'Name is required', 400);
+        return errorResponse(res, "Name is required", 400);
       }
-      
+
       const categoryId = await Category.create(name);
-      const newCategory = await Category.findById(categoryId);
-      
+      const serializedCategory =
+        categoryId && categoryId.toJSON ? categoryId.toJSON() : categoryId;
+      const newCategory = await Category.findByPk(serializedCategory.id);
+
       return successResponse(res, newCategory, 201);
     } catch (error) {
       return errorResponse(res, error.message);
     }
   }
+ 
 
   // Get all categories
   static async getAll(req, res) {
@@ -52,21 +55,20 @@ class CategoryController {
   static async update(req, res) {
     try {
       const { id } = req.params;
-      const { name } = req.body;
+      const {name} = req.body;
       const { Category } = req.models;
       
       if (!name) {
         return errorResponse(res, 'Name is required', 400);
       }
       
-      const category = await Category.findById(id);
+      const category = await Category.findByPk(id);
       
       if (!category) {
         return notFoundResponse(res, 'Category');
       }
-      
-      await Category.update(id, name);
-      const updatedCategory = await Category.findById(id);
+      await Category.update({ name }, { where: { id } });
+      const updatedCategory = await Category.findByPk(id);
       
       return successResponse(res, updatedCategory);
     } catch (error) {
@@ -74,18 +76,18 @@ class CategoryController {
     }
   }
 
-  // Delete a category
   static async delete(req, res) {
     try {
       const { id } = req.params;
       const { Category } = req.models;
-      const category = await Category.findById(id);
-      
+      const category = await Category.findByPk(id);
+  
       if (!category) {
         return notFoundResponse(res, 'Category');
       }
-      
-      await Category.delete(id);
+  
+      await category.destroy();
+  
       return successResponse(res, { id }, 204);
     } catch (error) {
       return errorResponse(res, error.message);

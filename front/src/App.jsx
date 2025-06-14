@@ -11,6 +11,7 @@ import MainLayout from "./layouts/MainLayout";
 import Page1 from "./Pages/Page1";
 import Page2 from "./Pages/Page2";
 import WorkersList from "./Pages/ManageWorkers/WorkersList";
+import SkillsManagement from "./Pages/SkillsManagement";
 import { PrivateRoute } from "./components/Atom/PrivateRoute";
 import { apiUrl } from "./config";
 import WorkerInvitation from "./Pages/ManageWorkers/WorkerInvitation";
@@ -122,6 +123,15 @@ function App() {
 
       <Route path="/dashbord" element={<MainLayout />}>
         <Route index element={<Page1 />} />
+        <Route
+          path="/dashbord/skills"
+          element={
+            <PrivateRoute
+              conditionsEvery={[{ field: "user_type", allowedValues: ["AD"] }]}
+              component={SkillsManagement}
+            />
+          }
+        />
         <Route
           path="/dashbord/acceuil1"
           element={
