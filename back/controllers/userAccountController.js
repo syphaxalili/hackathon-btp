@@ -146,6 +146,36 @@ class UserAccountController {
     }
   }
 
+    // Get current user profile
+  static async getMe(req, res) {
+    try {
+      // Vérifie que l'utilisateur a été injecté par le middleware d'auth
+      const user = req.user;
+
+      if (!user || !user.id) {
+        return errorResponse(res, "User not authenticated", 401);
+      }
+
+      // Récupère l'utilisateur dans la base de données
+      const userData = await req.models.UserAccount.findByPk(user.id);
+
+      if (!userData) {
+        return notFoundResponse(res, "User");
+      }
+
+      // Supprime les champs sensibles
+      const { password_hash, ...userWithoutPassword } = userData.get({
+        plain: true,
+      });
+
+      // Renvoie les données utilisateur dans un objet "user"
+      return successResponse(res, { user: userWithoutPassword });
+    } catch (error) {
+      return errorResponse(res, error.message || "Server error");
+    }
+  }
+
+
   // Get all users (with optional filtering by type)
   static async getAll(req, res) {
     try {
@@ -250,34 +280,6 @@ class UserAccountController {
     }
   }
 
-  // Get current user profile
-  static async getMe(req, res) {
-    try {
-      // Vérifie que l'utilisateur a été injecté par le middleware d'auth
-      const user = req.user;
-
-      if (!user || !user.id) {
-        return errorResponse(res, "User not authenticated", 401);
-      }
-
-      // Récupère l'utilisateur dans la base de données
-      const userData = await req.models.UserAccount.findByPk(user.id);
-
-      if (!userData) {
-        return notFoundResponse(res, "User");
-      }
-
-      // Supprime les champs sensibles
-      const { password_hash, ...userWithoutPassword } = userData.get({
-        plain: true,
-      });
-
-      // Renvoie les données utilisateur dans un objet "user"
-      return successResponse(res, { user: userWithoutPassword });
-    } catch (error) {
-      return errorResponse(res, error.message || "Server error");
-    }
-  }
 
   // Add a skill to a user
   static async addSkill(req, res) {
