@@ -19,6 +19,8 @@ import {
   IconButton
 } from '@mui/material';
 import { Add, Edit, Delete } from '@mui/icons-material';
+import { apiUrl } from '../config';
+import Cookies from "js-cookie";
 
 interface Category {
   id: number;
@@ -30,7 +32,7 @@ interface Skill {
   id: number;
   name: string;
   description: string;
-  categoryId: number;
+  CategoryId: number;
 }
 
 const SkillsManagement: React.FC = () => {
@@ -41,13 +43,36 @@ const SkillsManagement: React.FC = () => {
   const [currentCategory, setCurrentCategory] = useState<Partial<Category>>({});
   const [currentSkill, setCurrentSkill] = useState<Partial<Skill>>({});
   const [editing, setEditing] = useState(false);
+  const token = Cookies.get("token"); // Assurez-vous que le token est récupéré correctement
 
   // Charger les données initiales
   useEffect(() => {
-    // Ici, vous devrez appeler votre API pour charger les données
-    // Pour l'instant, on initialise avec des données vides
-    setCategories([]);
-    setSkills([]);
+    const fetchCategories = async () => {
+      await fetch(`${apiUrl}/categories`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      }).then(res => res.json()).then(({data}) => {
+        console.log(`Categories :`,data);
+        setCategories(data);
+      });
+    }
+    const fetchSkills = async () => {
+      await fetch(`${apiUrl}/skills`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      }).then(res => res.json()).then(({data}) => {
+        console.log(`Skills :`,data);
+        setSkills(data);
+      });
+    }
+    fetchCategories();
+    fetchSkills();
   }, []);
 
   const handleCategorySubmit = () => {
@@ -99,8 +124,8 @@ const SkillsManagement: React.FC = () => {
     setOpenCategoryDialog(true);
   };
 
-  const handleAddSkill = (categoryId: number) => {
-    setCurrentSkill({ categoryId });
+  const handleAddSkill = (CategoryId: number) => {
+    setCurrentSkill({ CategoryId });
     setEditing(false);
     setOpenSkillDialog(true);
   };
@@ -164,7 +189,7 @@ const SkillsManagement: React.FC = () => {
               </TableHead>
               <TableBody>
                 {skills
-                  .filter(skill => skill.categoryId === category.id)
+                  .filter(skill => skill.CategoryId === category.id)
                   .map((skill) => (
                     <TableRow key={skill.id}>
                       <TableCell>{skill.name}</TableCell>
