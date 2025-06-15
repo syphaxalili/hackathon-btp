@@ -1,6 +1,6 @@
 const { successResponse, errorResponse, notFoundResponse } = require('./utils');
 
-class CategoryController {
+  class CategoryController {
   // Create a new category
   static async create(req, res) {
     try {
