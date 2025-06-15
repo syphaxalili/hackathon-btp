@@ -16,7 +16,7 @@
     "@mui/material": "^7.1.1",
     "@mui/styled-engine-sc": "^7.1.1",
     "@mui/x-data-grid": "^8.5.2",
-    "axios": "^1.9.0",
+    "axios": "^1.10.0",
     "jotai": "^2.12.5",
     "js-cookie": "^3.0.5",
     "react": "^19.1.0",

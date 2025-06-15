@@ -1,317 +1,142 @@
-const { successResponse, errorResponse, notFoundResponse } = require('./utils');
+const { successResponse, errorResponse, notFoundResponse } = require("./utils");
+const { Op } = require("sequelize");
+
 
 class ConstructionSiteController {
-  // Create a new construction site
-  static async create(req, res) {
+  // Get All Sites
+  static async getAllSites(req, res) {
     try {
-      const { 
-        name, 
-        description, 
-        start_date, 
-        end_date, 
-        status, 
-        stakeholder_id,
-        required_skills,
-        ...otherData 
-      } = req.body;
-      const { ConstructionSite, StakeHolder, Skill } = req.models;
-
-      // Validate required fields
-      if (!name || !start_date || !stakeholder_id) {
-        return errorResponse(res, 'Name, start_date, and stakeholder_id are required', 400);
-      }
-      
-      // Check if stakeholder exists
-      const stakeholder = await StakeHolder.findById(stakeholder_id);
-      if (!stakeholder) {
-        return notFoundResponse(res, 'Stakeholder');
-      }
-      
-      // Create construction site
-      const siteId = await ConstructionSite.create({
-        name,
-        description,
-        start_date,
-        end_date,
-        status: status || 'planned',
-        stakeholder_id,
-        ...otherData
-      });
-      
-      // Add required skills if provided
-      if (required_skills && Array.isArray(required_skills)) {
-        for (const skillId of required_skills) {
-          const skill = await Skill.findById(skillId);
-          if (skill) {
-            await ConstructionSite.addRequiredSkill(siteId, skillId);
-          }
-        }
-      }
-      
-      const newSite = await ConstructionSite.findById(siteId);
-      return successResponse(res, newSite, 201);
-    } catch (error) {
-      return errorResponse(res, error.message);
-    }
-  }
-
-  // Get all construction sites
-  static async getAll(req, res) {
-    try {
-      const { status, stakeholder } = req.query;
       const { ConstructionSite } = req.models;
-      let sites;
-      
-      if (status) {
-        sites = await ConstructionSite.findByStatus(status);
-      } else if (stakeholder) {
-        sites = await ConstructionSite.findByStakeholder(stakeholder);
-      } else {
-        sites = await ConstructionSite.findAll();
-      }
-      
+      const sites = await ConstructionSite.findAll({
+        order: [["id"]],
+      });
+
       return successResponse(res, sites);
     } catch (error) {
       return errorResponse(res, error.message);
     }
   }
+static async getConstructionSiteById(req, res) {
+  const { ConstructionSite, StakeHolder, UserAccount } = req.models;
+  const siteId = req.params.id;
 
-  // Get a construction site by ID
-  static async getById(req, res) {
-    try {
-      const { id } = req.params;
-      const { ConstructionSite } = req.models;
-      const site = await ConstructionSite.findById(id);
-      
-      if (!site) {
-        return notFoundResponse(res, 'Construction site');
-      }
-      
-      // Get additional details
-      const [workers, requiredSkills] = await Promise.all([
-        ConstructionSite.getWorkers(id),
-        ConstructionSite.getRequiredSkills(id)
-      ]);
-      
-      return successResponse(res, {
-        ...site,
-        workers,
-        required_skills: requiredSkills
-      });
-    } catch (error) {
-      return errorResponse(res, error.message);
-    }
-  }
-
-  // Update a construction site
-  static async update(req, res) {
-    try {
-      const { id } = req.params;
-      const updateData = req.body;
-      const { ConstructionSite, StakeHolder } = req.models;
-      
-      // Check if site exists
-      const site = await ConstructionSite.findById(id);
-      if (!site) {
-        return notFoundResponse(res, 'Construction site');
-      }
-      
-      // If updating stakeholder_id, check if the new stakeholder exists
-      if (updateData.stakeholder_id && updateData.stakeholder_id !== site.stakeholder_id) {
-        const stakeholder = await StakeHolder.findById(updateData.stakeholder_id);
-        if (!stakeholder) {
-          return notFoundResponse(res, 'Stakeholder');
+  try {
+    const site = await ConstructionSite.findByPk(siteId, {
+      include: [
+        {
+          model: StakeHolder,
+          as: "stakeholder",
+        },
+        {
+          model: UserAccount,
+          as: "workers",
+          through: { attributes: [] }, // supprime les infos de jointure
+          attributes: {
+            exclude: ["password"] // pour éviter de renvoyer les mots de passe
+          }
         }
-      }
-      
-      await ConstructionSite.update(id, updateData);
-      const updatedSite = await ConstructionSite.findById(id);
-      
-      return successResponse(res, updatedSite);
-    } catch (error) {
-      return errorResponse(res, error.message);
-    }
-  }
+      ]
+    });
 
-  // Update construction site status
-  static async updateStatus(req, res) {
-    try {
-      const { id } = req.params;
-      const { status } = req.body;
-      const { ConstructionSite } = req.models;
-      
-      if (!status) {
-        return errorResponse(res, 'Status is required', 400);
-      }
-      
-      // Check if site exists
-      const site = await ConstructionSite.findById(id);
-      if (!site) {
-        return notFoundResponse(res, 'Construction site');
-      }
-      
-      await ConstructionSite.updateStatus(id, status);
-      const updatedSite = await ConstructionSite.findById(id);
-      
-      return successResponse(res, updatedSite);
-    } catch (error) {
-      return errorResponse(res, error.message);
+    if (!site) {
+      return res.status(404).json({ error: "Chantier non trouvé" });
     }
-  }
 
-  // Delete a construction site
-  static async delete(req, res) {
-    try {
-      const { id } = req.params;
-      const { ConstructionSite } = req.models;
-      const site = await ConstructionSite.findById(id);
-      
-      if (!site) {
-        return notFoundResponse(res, 'Construction site');
-      }
-      
-      await ConstructionSite.delete(id);
-      return successResponse(res, { id }, 204);
-    } catch (error) {
-      return errorResponse(res, error.message);
-    }
+    return res.status(200).json(site);
+  } catch (err) {
+    console.error("Erreur lors de la récupération du chantier :", err);
+    return res.status(500).json({ error: "Erreur serveur" });
   }
+}
 
   
-  // Get all workers from a construction site
-  static async getWorkers(req, res) {
+  static async getAvailableUsers(req, res) {
+    const { UserAccount, StakeHolder } = req.models;
     try {
-      const { siteId } = req.params;
-      const { ConstructionSite } = req.models;
-      
-      // Check if site exists
-      const site = await ConstructionSite.findById(siteId);
-      if (!site) {
-        return notFoundResponse(res, 'Construction site');
-      }
-      
-      const workers = await ConstructionSite.getWorkers(siteId);
-      return successResponse(res, workers);
-    } catch (error) {
-      return errorResponse(res, error.message);
+      const users = await UserAccount.findAll({
+        where: {
+          is_actif: true,
+          is_visible: true,
+        },
+        attributes: ["id", "first_name", "last_name", "email"],
+      });
+
+      return res.status(200).json(users);
+    } catch (err) {
+      console.error("Erreur lors de la récupération des utilisateurs :", err);
+      return res.status(500).json({ error: "Erreur serveur" });
     }
   }
 
-  // Assign a worker to a construction site
-  static async assignWorker(req, res) {
+  // 2. Récupère les parties prenantes visibles
+  static async getVisibleStakeholders(req, res) {
+    const { StakeHolder } = req.models;
     try {
-      const { siteId, workerId } = req.params;
-      const { ConstructionSite, UserAccount } = req.models;
-      
-      // Check if site exists
-      const site = await ConstructionSite.findById(siteId);
-      if (!site) {
-        return notFoundResponse(res, 'Construction site');
-      }
-      
-      // Check if worker exists and is actually a worker
-      const worker = await UserAccount.findById(workerId);
-      if (!worker || worker.user_type !== 'worker') {
-        return errorResponse(res, 'Invalid worker', 400);
-      }
-      
-      await ConstructionSite.assignWorker(siteId, workerId);
-      await ConstructionSite.updateWorkerCount(siteId);
-      
-      const updatedSite = await ConstructionSite.findById(siteId);
-      return successResponse(res, updatedSite);
-    } catch (error) {
-      return errorResponse(res, error.message);
+      const stakeholders = await StakeHolder.findAll({
+        where: { is_actif: true },
+        attributes: ["id", "name"],
+      });
+
+      return res.status(200).json(stakeholders);
+    } catch (err) {
+      console.error(
+        "Erreur lors de la récupération des parties prenantes :",
+        err
+      );
+      return res.status(500).json({ error: "Erreur serveur" });
     }
   }
 
-  // Remove a worker from a construction site
-  static async removeWorker(req, res) {
-    try {
-      const { siteId, workerId } = req.params;
-      const { ConstructionSite } = req.models;
-      
-      // Check if site exists
-      const site = await ConstructionSite.findById(siteId);
-      if (!site) {
-        return notFoundResponse(res, 'Construction site');
-      }
-      
-      await ConstructionSite.removeWorker(siteId, workerId);
-      await ConstructionSite.updateWorkerCount(siteId);
-      
-      const updatedSite = await ConstructionSite.findById(siteId);
-      return successResponse(res, updatedSite);
-    } catch (error) {
-      return errorResponse(res, error.message);
-    }
-  }
+  // 3. Crée un nouveau chantier et associe les utilisateurs sélectionnés
+  static async createConstructionSite(req, res) {
+    const { ConstructionSite, UserAccount } = req.models;
+    const {
+      status_construction,
+      n_worker,
+      users = [],
+      stakeholderId = null,
+      ...siteData
+    } = req.body;
 
-  // Add a required skill to a construction site
-  static async addRequiredSkill(req, res) {
-    try {
-      const { siteId, skillId } = req.params;
-      const { ConstructionSite, Skill } = req.models;
-      
-      // Check if site exists
-      const site = await ConstructionSite.findById(siteId);
-      if (!site) {
-        return notFoundResponse(res, 'Construction site');
-      }
-      
-      // Check if skill exists
-      const skill = await Skill.findById(skillId);
-      if (!skill) {
-        return notFoundResponse(res, 'Skill');
-      }
-      
-      await ConstructionSite.addRequiredSkill(siteId, skillId);
-      const updatedSite = await ConstructionSite.findById(siteId);
-      
-      return successResponse(res, updatedSite);
-    } catch (error) {
-      return errorResponse(res, error.message);
-    }
-  }
+    const transaction = await ConstructionSite.sequelize.transaction();
 
-  // Remove a required skill from a construction site
-  static async removeRequiredSkill(req, res) {
     try {
-      const { siteId, skillId } = req.params;
-      const { ConstructionSite } = req.models;
-      
-      // Check if site exists
-      const site = await ConstructionSite.findById(siteId);
-      if (!site) {
-        return notFoundResponse(res, 'Construction site');
-      }
-      
-      await ConstructionSite.removeRequiredSkill(siteId, skillId);
-      const updatedSite = await ConstructionSite.findById(siteId);
-      
-      return successResponse(res, updatedSite);
-    } catch (error) {
-      return errorResponse(res, error.message);
-    }
-  }
+      // Étape 1 : Création du chantier
+      const site = await ConstructionSite.create(
+        {
+          status_construction: status_construction,
+          n_worker: n_worker,
+          ...siteData,
+          st_Id: stakeholderId,
+        },
+        { transaction }
+      );
 
-  // Find compatible workers for a construction site
-  static async findCompatibleWorkers(req, res) {
-    try {
-      const { siteId } = req.params;
-      const { ConstructionSite } = req.models;
-      
-      // Check if site exists
-      const site = await ConstructionSite.findById(siteId);
-      if (!site) {
-        return notFoundResponse(res, 'Construction site');
+      // Étape 2 : Association des utilisateurs
+      if (users.length > 0) {
+        await site.addWorkers(users, { transaction });
+
+        // Étape 3 : Mise à jour de la disponibilité des utilisateurs
+        await UserAccount.update(
+          { is_actif: false },
+          {
+            where: { id: { [Op.in]: users } },
+            transaction,
+          }
+        );
       }
-      
-      const compatibleWorkers = await ConstructionSite.findCompatibleWorkers(siteId);
-      
-      return successResponse(res, compatibleWorkers);
-    } catch (error) {
-      return errorResponse(res, error.message);
+
+      await transaction.commit();
+
+      return res
+        .status(201)
+        .json({ message: "Chantier créé avec succès", siteId: site.id });
+    } catch (err) {
+      console.error("Erreur lors de la création du chantier :", err);
+      await transaction.rollback();
+      return res
+        .status(500)
+        .json({ error: "Erreur lors de la création du chantier" });
     }
   }
 }

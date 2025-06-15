@@ -15,7 +15,7 @@ const usersRoutes = require("./user.routes");
 router.use("/auth", authRoutes);
 router.use("/skills", skillsRoutes);
 router.use("/categories", categoriesRoutes);
-router.use("/construction-sites", constructionSitesRoutes);
+router.use("/sites", constructionSitesRoutes);
 router.use("/stakeholders", stakeholdersRoutes);
 router.use("/geolocation", geolocationRoutes);
 router.use("/stats", statsRoutes);
