@@ -1,16 +1,25 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import Sidebar from "./SideNavbar";
+import SideNavbar from "./SideNavbar";
+import { Box, Toolbar } from "@mui/material";
 
-const MainLayout: React.FC = () => {
+const drawerWidth = 240;
+
+export default function MainLayout() {
   return (
-    <div style={{ display: "flex" }}>
-      <Sidebar />
-      <main style={{ flexGrow: 1, padding: "1rem" }}>
-        <Outlet /> {/* Affiche la page courante ici */}
-      </main>
-    </div>
+    <Box sx={{ display: "flex" }}>
+      <SideNavbar />
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: { sm: `calc(100% - ${drawerWidth}px)` }
+        }}
+      >
+        <Toolbar />
+        <Outlet />
+      </Box>
+    </Box>
   );
-};
-
-export default MainLayout;
+}
