@@ -22,6 +22,7 @@ import StakeHolderCreateNew from "./Pages/ManageStakeHolders/StakeHolderCreateNe
 import StakeHolderUpdateById from "./Pages/ManageStakeHolders/StakeHolderUpdateById";
 import SiteCreate from "./Pages/ManageSite/SiteCreate";
 import SiteGetAll from "./Pages/ManageSite/SiteGetAll";
+import SiteGetById from "./Pages/ManageSite/SiteGetById";
 
 function App() {
   const [user, setUser] = useAtom(userAtom);
@@ -191,6 +192,7 @@ function App() {
             />
           }
         />
+        <Route path="/dashbord/site/:id" element={<SiteGetById />} />
       </Route>
     </Routes>
   );
