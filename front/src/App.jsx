@@ -8,7 +8,7 @@ import Home from "./Pages/Home";
 import NotFound from "./components/Atom/NotFound";
 import Unauthorized from "./components/Atom/Unauthorized";
 import MainLayout from "./layouts/MainLayout";
-import Page1 from "./Pages/Page1";
+import Page1 from "./Pages/DashboardKpi";
 import WorkersList from "./Pages/ManageWorkers/WorkersList";
 import SkillsManagement from "./Pages/SkillsManagement";
 import { PrivateRoute } from "./components/Atom/PrivateRoute";
@@ -22,6 +22,7 @@ import StakeHolderCreateNew from "./Pages/ManageStakeHolders/StakeHolderCreateNe
 import StakeHolderUpdateById from "./Pages/ManageStakeHolders/StakeHolderUpdateById";
 import SiteCreate from "./Pages/ManageSite/SiteCreate";
 import SiteGetAll from "./Pages/ManageSite/SiteGetAll";
+import DashboardKpi from "./Pages/DashboardKpi";
 import SiteGetById from "./Pages/ManageSite/SiteGetById";
 
 function App() {
@@ -127,7 +128,7 @@ function App() {
       <Route path="/logout" element={<Logout />} />
 
       <Route path="/dashbord" element={<MainLayout />}>
-        <Route index element={<Page1 />} />
+        <Route index element={<DashboardKpi />} />
         <Route
           path="/dashbord/skills"
           element={
