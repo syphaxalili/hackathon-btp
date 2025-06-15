@@ -1,27 +1,30 @@
-const { successResponse, errorResponse, notFoundResponse } = require('./utils');
+const { successResponse, errorResponse, notFoundResponse } = require("./utils");
 
 class StakeHoldersController {
   // Create a new stakeholder
   static async create(req, res) {
     try {
-      const { name, description, contact_email, contact_phone, ...otherData } = req.body;
+      const { name, tax_number, vat_number, address, ...otherData } = req.body;
       const { StakeHolder } = req.models;
 
       // Validate required fields
-      if (!name || !contact_email) {
-        return errorResponse(res, 'Name and contact email are required', 400);
+      if (!name || !tax_number) {
+        return errorResponse(
+          res,
+          "Name and contact tax_number are required",
+          400
+        );
       }
-      
+
       const stakeholderId = await StakeHolder.create({
-        name,
-        description,
-        contact_email,
-        contact_phone,
-        ...otherData
+        name: name,
+        tax_number: tax_number,
+        vat_number: vat_number,
+        address: address,
+        ...otherData,
       });
-      
-      const newStakeholder = await StakeHolder.findById(stakeholderId);
-      return successResponse(res, newStakeholder, 201);
+
+      return successResponse(res, stakeholderId, 201);
     } catch (error) {
       return errorResponse(res, error.message);
     }
@@ -44,11 +47,11 @@ class StakeHoldersController {
       const { id } = req.params;
       const { StakeHolder } = req.models;
       const stakeholder = await StakeHolder.findById(id);
-      
+
       if (!stakeholder) {
-        return notFoundResponse(res, 'Stakeholder');
+        return notFoundResponse(res, "Stakeholder");
       }
-      
+
       return successResponse(res, stakeholder);
     } catch (error) {
       return errorResponse(res, error.message);
@@ -60,20 +63,20 @@ class StakeHoldersController {
     try {
       const { id } = req.params;
       const updateData = req.body;
-      
+
       // Check if stakeholder exists
       const { StakeHolder } = req.models;
       const stakeholder = await StakeHolder.findById(id);
       if (!stakeholder) {
-        return notFoundResponse(res, 'Stakeholder');
+        return notFoundResponse(res, "Stakeholder");
       }
-      
+
       // Prevent updating certain fields directly
       const { id: _, created_at, ...validUpdates } = updateData;
-      
+
       await StakeHolder.update(id, validUpdates);
       const updatedStakeholder = await StakeHolder.findById(id);
-      
+
       return successResponse(res, updatedStakeholder);
     } catch (error) {
       return errorResponse(res, error.message);
@@ -86,11 +89,11 @@ class StakeHoldersController {
       const { id } = req.params;
       const { StakeHolder } = req.models;
       const stakeholder = await StakeHolder.findById(id);
-      
+
       if (!stakeholder) {
-        return notFoundResponse(res, 'Stakeholder');
+        return notFoundResponse(res, "Stakeholder");
       }
-      
+
       await StakeHolder.delete(id);
       return successResponse(res, { id }, 204);
     } catch (error) {

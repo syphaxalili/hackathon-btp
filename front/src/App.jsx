@@ -18,6 +18,8 @@ import WorkerInvitation from "./Pages/ManageWorkers/WorkerInvitation";
 import Logout from "./Pages/ManageAccount/Logout";
 import UpdateUserData from "./Pages/ManageAccount/UserDataUpdate";
 import WorkerSeeMore from "./Pages/ManageWorkers/WorkerSeeMore";
+import StakeHolderList from "./Pages/ManageStakeHolders/StakeHolderList";
+import StakeHolderCreateNew from "./Pages/ManageStakeHolders/StakeHolderCreateNew";
 
 function App() {
   const [user, setUser] = useAtom(userAtom);
@@ -162,6 +164,16 @@ function App() {
         />
         <Route path="/dashbord/user/account" element={<UpdateUserData />} />
         <Route path="/dashbord/worker/:id" element={<WorkerSeeMore />} />
+        <Route path="/dashbord/stakeholder" element={<StakeHolderList />} />
+        <Route
+          path="/dashbord/stakeholder/new"
+          element={
+            <PrivateRoute
+              conditionsEvery={[{ field: "user_type", allowedValues: ["AD"] }]}
+              component={StakeHolderCreateNew}
+            />
+          }
+        />
       </Route>
     </Routes>
   );
