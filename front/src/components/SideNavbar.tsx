@@ -44,11 +44,6 @@ const privateNavItems = [
     icon: <CategoryIcon />,
     path: "/dashbord/skills",
   },
-  {
-    label: "Gestion chantiers",
-    icon: <ConstructionIcon />,
-    path: "/dashbord/site/new",
-  },
 ];
 
 const SideNavbar = () => {
@@ -91,13 +86,13 @@ const SideNavbar = () => {
                 sx={{
                   cursor: "pointer",
                   color: selected ? "#fff" : "inherit",
-                  background: selected ? "#1976d2" : "transparent",
+                  background: selected ? "#F87A15" : "transparent",
                   borderRadius: selected ? "8px" : 0,
                   border: selected ? "2px solid #fff" : "none",
                   mx: 1,
                   my: 0.5,
                   "&:hover": {
-                    background: "#1565c0",
+                    background: "#F87A15",
                     color: "#fff",
                   },
                 }}
@@ -122,13 +117,13 @@ const SideNavbar = () => {
                 sx={{
                   cursor: "pointer",
                   color: selected ? "#fff" : "inherit",
-                  background: selected ? "#1976d2" : "transparent",
+                  background: selected ? "#F87A15" : "transparent",
                   borderRadius: selected ? "8px" : 0,
                   border: selected ? "2px solid #fff" : "none",
                   mx: 1,
                   my: 0.5,
                   "&:hover": {
-                    background: "#1565c0",
+                    background: "#F87A15",
                     color: "#fff",
                   },
                 }}

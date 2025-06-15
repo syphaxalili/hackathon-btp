@@ -33,62 +33,68 @@ export default function DashboardKpiStyled() {
     return <Typography>Chargement des KPI…</Typography>;
   }
 
-  // Définition des cartes avec styles, couleurs et commentaires
+  // Groupes :
+  // 1. Utilisateurs (total bleu, actif vert, inactif orange)
+  // 2. Chantiers (total bleu, clôturés vert, annulés rouge)
+  // 3. Parties Prenantes (total bleu)
   const cards = [
+    // Utilisateurs
     {
       id: 'u_total',
       title: 'Total Utilisateurs',
       value: kpis.users.total,
-      color: theme.palette.primary.main,
+      titleColor: '#1565c0', // bleu total
       comment: 'Nombre total d’utilisateurs inscrits sur la plateforme.'
     },
-    {
+        {
       id: 'u_active',
       title: 'Utilisateurs Actifs',
       value: kpis.users.active,
-      color: theme.palette.success.main,
+      titleColor: theme.palette.success.light, // vert actif plus clair
       comment: 'Utilisateurs ayant interagi au cours des 30 derniers jours.'
     },
     {
       id: 'u_inactive',
       title: 'Utilisateurs Inactifs',
       value: kpis.users.inactive,
-      color: theme.palette.warning.main,
+      titleColor: theme.palette.warning.main, // orange inactif
       comment: 'Utilisateurs sans connexion récente.'
     },
+    // Chantiers
     {
       id: 's_total',
       title: 'Chantiers Totaux',
       value: kpis.sites.total,
-      color: theme.palette.primary.dark,
+      titleColor: '#1565c0', // bleu total
       comment: 'Nombre de projets en cours ou terminés.'
     },
     {
       id: 's_validated',
       title: 'Chantiers Validés',
       value: kpis.sites.validated,
-      color: theme.palette.success.light,
+      titleColor: theme.palette.success.main, // validés en vert
       comment: 'Projets officiellement approuvés.'
     },
-    {
+        {
       id: 's_closed',
       title: 'Chantiers Clôturés',
       value: kpis.sites.closed,
-      color: theme.palette.info.main,
+      titleColor: theme.palette.success.light, // clôturés en vert plus clair
       comment: 'Projets terminés et archivés.'
     },
     {
       id: 's_cancelled',
       title: 'Chantiers Annulés',
       value: kpis.sites.cancelled,
-      color: theme.palette.error.main,
+      titleColor: theme.palette.error.main, // rouge annulé
       comment: 'Projets interrompus avant achèvement.'
     },
+    // Parties Prenantes
     {
       id: 'sh_total',
       title: 'Total Parties Prenantes',
       value: kpis.stakeholders.total,
-      color: theme.palette.secondary.main,
+      titleColor: '#1565c0', // bleu total
       comment: 'Nombre d’intervenants associés aux projets.'
     }
   ];
@@ -103,7 +109,11 @@ export default function DashboardKpiStyled() {
       }}
     >
       {cards.map(card => (
-        <Card key={card.id} elevation={selectedCard === card.id ? 8 : 2}>
+        <Card
+          key={card.id}
+          elevation={selectedCard === card.id ? 8 : 2}
+          sx={{ backgroundColor: '#223843' }}
+        >
           <CardActionArea
             onClick={() => setSelectedCard(card.id)}
             sx={{
@@ -117,14 +127,18 @@ export default function DashboardKpiStyled() {
             }}
           >
             <CardHeader
-              title={<Typography variant="h6" sx={{ color: card.color }}>{card.title}</Typography>}
+              title={
+                <Typography variant="h6" sx={{ color: card.titleColor }}>
+                  {card.title}
+                </Typography>
+              }
               titleTypographyProps={{ gutterBottom: true }}
             />
             <CardContent>
-              <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
+              <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1, color: theme.palette.primary.contrastText }}>
                 {card.value}
               </Typography>
-              <Typography variant="body2" color="textSecondary">
+              <Typography variant="body2" sx={{ color: theme.palette.primary.contrastText }}>
                 {card.comment}
               </Typography>
             </CardContent>
