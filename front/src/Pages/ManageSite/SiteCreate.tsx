@@ -20,7 +20,7 @@ import { useNavigate } from "react-router-dom";
 
 const SiteCreate = () => {
   const [formData, setFormData] = useState({
-    status_construction: "BR", // Brouillon par défaut
+    status_construction: "VA", // Brouillon par défaut
     n_worker: "",
     address: "",
     postale_code: "",

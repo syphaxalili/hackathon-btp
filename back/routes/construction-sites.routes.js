@@ -29,5 +29,10 @@ router.post(
   AuthMiddleware.authenticateToken,
   ConstructionSiteController.createConstructionSite
 );
+router.patch(
+  "/construction-sites/statut/:id",
+  AuthMiddleware.authenticateToken,
+  ConstructionSiteController.updateStatus
+);
 
 module.exports = router;
