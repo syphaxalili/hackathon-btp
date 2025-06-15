@@ -139,7 +139,7 @@ class ConstructionSiteController {
   }
 
   static async updateStatus(req, res) {
-    const { ConstructionSite, UserAccount } = req.models;
+    const { ConstructionSite, UserAccount, StakeHolder } = req.models;
     const siteId = req.params.id;
     console.log("Updating status for site ID:", siteId);
 
