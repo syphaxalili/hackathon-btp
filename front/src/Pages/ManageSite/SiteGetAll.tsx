@@ -166,7 +166,7 @@ const SiteGetAll = () => {
               size="small"
               variant="outlined"
               color="primary"
-              onClick={() => navigate(`/dashboard/sites/${params.row.siteId}`)}
+              onClick={() => navigate(`/dashbord/site/${params.row.siteId}`)}
             >
               Voir plus
             </Button>
