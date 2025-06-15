@@ -18,12 +18,13 @@ import CategoryIcon from "@mui/icons-material/Category";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAtom } from "jotai";
 import { User, userAtom } from "./Atom/UserAtom";
+import ConstructionIcon from "@mui/icons-material/Construction";
 
 const drawerWidth = 240;
 
 const publicNavItems = [
   { label: "Dashbord", icon: <DashboardIcon />, path: "/dashbord" },
-  { label: "Chantier", icon: <HomeIcon />, path: "/dashbord/acceuil2" },
+  { label: "Chantier", icon: <HomeIcon />, path: "/dashbord/chantiers" },
   { label: "Mes ouvriers", icon: <PeopleIcon />, path: "/dashbord/ouvriers" },
   {
     label: "Mes sous traitant",
@@ -42,6 +43,11 @@ const privateNavItems = [
     label: "Gestion compétences",
     icon: <CategoryIcon />,
     path: "/dashbord/skills",
+  },
+  {
+    label: "Gestion chantiers",
+    icon: <ConstructionIcon />,
+    path: "/dashbord/site/new",
   },
 ];
 

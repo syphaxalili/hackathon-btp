@@ -193,10 +193,7 @@ class UserAccountController {
       const filteredUsers = users
         .filter(
           (user) =>
-            user &&
-            user.id !== currentUserId.id &&
-            user.is_visible === true &&
-            user.is_actif === true
+            user && user.id !== currentUserId.id && user.is_visible === true
         )
         .map((user) => {
           const plainUser = user.get({ plain: true });

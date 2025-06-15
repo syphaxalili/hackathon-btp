@@ -7,7 +7,6 @@ import { userAtom } from "../../components/Atom/UserAtom";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 
-
 const WorkersList = () => {
   const [rows, setRows] = useState([]);
   const [user] = useAtom(userAtom);

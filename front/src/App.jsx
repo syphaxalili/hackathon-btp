@@ -9,7 +9,6 @@ import NotFound from "./components/Atom/NotFound";
 import Unauthorized from "./components/Atom/Unauthorized";
 import MainLayout from "./layouts/MainLayout";
 import Page1 from "./Pages/Page1";
-import Page2 from "./Pages/Page2";
 import WorkersList from "./Pages/ManageWorkers/WorkersList";
 import SkillsManagement from "./Pages/SkillsManagement";
 import { PrivateRoute } from "./components/Atom/PrivateRoute";
@@ -21,6 +20,8 @@ import WorkerSeeMore from "./Pages/ManageWorkers/WorkerSeeMore";
 import StakeHolderList from "./Pages/ManageStakeHolders/StakeHolderList";
 import StakeHolderCreateNew from "./Pages/ManageStakeHolders/StakeHolderCreateNew";
 import StakeHolderUpdateById from "./Pages/ManageStakeHolders/StakeHolderUpdateById";
+import SiteCreate from "./Pages/ManageSite/SiteCreate";
+import SiteGetAll from "./Pages/ManageSite/SiteGetAll";
 
 function App() {
   const [user, setUser] = useAtom(userAtom);
@@ -145,11 +146,11 @@ function App() {
           }
         />
         <Route
-          path="/dashbord/acceuil2"
+          path="/dashbord/chantiers"
           element={
             <PrivateRoute
               conditionsEvery={[{ field: "user_type", allowedValues: ["AD"] }]}
-              component={Page2}
+              component={SiteGetAll}
             />
           }
         />
@@ -178,6 +179,17 @@ function App() {
         <Route
           path="/dashbord/stakeholder/:id"
           element={<StakeHolderUpdateById />}
+        />
+        <Route
+          path="/dashbord/site/new"
+          element={
+            <PrivateRoute
+              conditionsEvery={[
+                { field: "user_type", allowedValues: ["AD", "CDC"] },
+              ]}
+              component={SiteCreate}
+            />
+          }
         />
       </Route>
     </Routes>
