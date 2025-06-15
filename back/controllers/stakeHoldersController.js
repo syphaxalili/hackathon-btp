@@ -34,7 +34,12 @@ class StakeHoldersController {
   static async getAll(req, res) {
     try {
       const { StakeHolder } = req.models;
-      const stakeholders = await StakeHolder.findAll();
+
+      // On filtre avec is_actif: true
+      const stakeholders = await StakeHolder.findAll({
+        where: { is_actif: true },
+      });
+
       return successResponse(res, stakeholders);
     } catch (error) {
       return errorResponse(res, error.message);
@@ -46,7 +51,13 @@ class StakeHoldersController {
     try {
       const { id } = req.params;
       const { StakeHolder } = req.models;
-      const stakeholder = await StakeHolder.findById(id);
+
+      const stakeholder = await StakeHolder.findOne({
+        where: {
+          id,
+          is_actif: true, // Vérifie aussi qu’il est actif
+        },
+      });
 
       if (!stakeholder) {
         return notFoundResponse(res, "Stakeholder");
@@ -63,20 +74,28 @@ class StakeHoldersController {
     try {
       const { id } = req.params;
       const updateData = req.body;
-
-      // Check if stakeholder exists
       const { StakeHolder } = req.models;
-      const stakeholder = await StakeHolder.findById(id);
+
+      // Vérifie qu’il existe ET qu’il est actif
+      const stakeholder = await StakeHolder.findOne({
+        where: {
+          id,
+          is_actif: true,
+        },
+      });
+
       if (!stakeholder) {
         return notFoundResponse(res, "Stakeholder");
       }
 
-      // Prevent updating certain fields directly
+      // Exclure certains champs sensibles
       const { id: _, created_at, ...validUpdates } = updateData;
 
-      await StakeHolder.update(id, validUpdates);
-      const updatedStakeholder = await StakeHolder.findById(id);
+      await StakeHolder.update(validUpdates, {
+        where: { id },
+      });
 
+      const updatedStakeholder = await StakeHolder.findByPk(id);
       return successResponse(res, updatedStakeholder);
     } catch (error) {
       return errorResponse(res, error.message);
@@ -88,13 +107,13 @@ class StakeHoldersController {
     try {
       const { id } = req.params;
       const { StakeHolder } = req.models;
-      const stakeholder = await StakeHolder.findById(id);
+      const stakeholder = await StakeHolder.findByPk(id);
 
       if (!stakeholder) {
         return notFoundResponse(res, "Stakeholder");
       }
 
-      await StakeHolder.delete(id);
+      await StakeHolder.update({ is_actif: false }, { where: { id } });
       return successResponse(res, { id }, 204);
     } catch (error) {
       return errorResponse(res, error.message);

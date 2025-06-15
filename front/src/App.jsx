@@ -20,6 +20,7 @@ import UpdateUserData from "./Pages/ManageAccount/UserDataUpdate";
 import WorkerSeeMore from "./Pages/ManageWorkers/WorkerSeeMore";
 import StakeHolderList from "./Pages/ManageStakeHolders/StakeHolderList";
 import StakeHolderCreateNew from "./Pages/ManageStakeHolders/StakeHolderCreateNew";
+import StakeHolderUpdateById from "./Pages/ManageStakeHolders/StakeHolderUpdateById";
 
 function App() {
   const [user, setUser] = useAtom(userAtom);
@@ -173,6 +174,10 @@ function App() {
               component={StakeHolderCreateNew}
             />
           }
+        />
+        <Route
+          path="/dashbord/stakeholder/:id"
+          element={<StakeHolderUpdateById />}
         />
       </Route>
     </Routes>

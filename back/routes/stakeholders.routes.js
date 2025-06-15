@@ -4,7 +4,11 @@ const { StakeHoldersController } = require("../controllers");
 const AuthMiddleware = require("../middlewares/AuthMiddleware");
 
 // Routes des parties prenantes
-router.get("/all", AuthMiddleware.authenticateToken, StakeHoldersController.getAll);
+router.get(
+  "/all",
+  AuthMiddleware.authenticateToken,
+  StakeHoldersController.getAll
+);
 router.get(
   "/:id",
   AuthMiddleware.authenticateToken,
@@ -15,12 +19,12 @@ router.post(
   AuthMiddleware.authenticateToken,
   StakeHoldersController.create
 );
-router.put(
+router.patch(
   "/:id",
   AuthMiddleware.authenticateToken,
   StakeHoldersController.update
 );
-router.delete(
+router.put(
   "/:id",
   AuthMiddleware.authenticateToken,
   StakeHoldersController.delete
