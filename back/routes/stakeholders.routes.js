@@ -1,13 +1,33 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { StakeHoldersController } = require('../controllers');
-const { authenticateToken, checkRole } = require('./middleware');
+const { StakeHoldersController } = require("../controllers");
+const AuthMiddleware = require("../middlewares/AuthMiddleware");
 
 // Routes des parties prenantes
-router.get('/', authenticateToken, StakeHoldersController.getAll);
-router.get('/:id', authenticateToken, StakeHoldersController.getById);
-router.post('/', authenticateToken, checkRole(['admin']), StakeHoldersController.create);
-router.put('/:id', authenticateToken, checkRole(['admin']), StakeHoldersController.update);
-router.delete('/:id', authenticateToken, checkRole(['admin']), StakeHoldersController.delete);
+router.get(
+  "/all",
+  AuthMiddleware.authenticateToken,
+  StakeHoldersController.getAll
+);
+router.get(
+  "/:id",
+  AuthMiddleware.authenticateToken,
+  StakeHoldersController.getById
+);
+router.post(
+  "/create",
+  AuthMiddleware.authenticateToken,
+  StakeHoldersController.create
+);
+router.patch(
+  "/:id",
+  AuthMiddleware.authenticateToken,
+  StakeHoldersController.update
+);
+router.put(
+  "/:id",
+  AuthMiddleware.authenticateToken,
+  StakeHoldersController.delete
+);
 
 module.exports = router;

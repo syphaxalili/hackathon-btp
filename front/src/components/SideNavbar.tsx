@@ -14,7 +14,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import CategoryIcon from '@mui/icons-material/Category';
+import CategoryIcon from "@mui/icons-material/Category";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAtom } from "jotai";
 import { User, userAtom } from "./Atom/UserAtom";
@@ -28,7 +28,7 @@ const publicNavItems = [
   {
     label: "Mes sous traitant",
     icon: <SettingsIcon />,
-    path: "/dashboard/acceuil-32",
+    path: "/dashbord/stakeholder",
   },
   {
     label: "Mon compte",
@@ -42,7 +42,7 @@ const privateNavItems = [
     label: "Gestion compétences",
     icon: <CategoryIcon />,
     path: "/dashbord/skills",
-  }
+  },
 ];
 
 const SideNavbar = () => {
@@ -105,7 +105,8 @@ const SideNavbar = () => {
           })}
         </List>
         <Divider />
-        {user && user.user_type === "AD" && (
+        {user &&
+          user.user_type === "AD" &&
           privateNavItems.map((item) => {
             const selected = location.pathname === item.path;
             return (
@@ -132,8 +133,7 @@ const SideNavbar = () => {
                 <ListItemText primary={item.label} />
               </ListItem>
             );
-          })
-        )}
+          })}
       </Box>
 
       <Box sx={{ p: 2 }}>
