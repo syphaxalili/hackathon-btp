@@ -23,6 +23,7 @@ import StakeHolderUpdateById from "./Pages/ManageStakeHolders/StakeHolderUpdateB
 import SiteCreate from "./Pages/ManageSite/SiteCreate";
 import SiteGetAll from "./Pages/ManageSite/SiteGetAll";
 import DashboardKpi from "./Pages/DashboardKpi";
+import SiteGetById from "./Pages/ManageSite/SiteGetById";
 
 function App() {
   const [user, setUser] = useAtom(userAtom);
@@ -192,6 +193,7 @@ function App() {
             />
           }
         />
+        <Route path="/dashbord/site/:id" element={<SiteGetById />} />
       </Route>
     </Routes>
   );
