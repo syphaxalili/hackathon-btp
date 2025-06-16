@@ -15,14 +15,14 @@ import Cookies from "js-cookie";
 import { apiUrl } from "../../config";
 
 type Stakeholder = {
-  name: string;
-  tax_number: string;
-  vat_number: string;
-  email: string;
-  address: string;
-  postale_code: string;
-  city: string;
-  country: string;
+  name: string | "Null";
+  tax_number: string | "Null";
+  vat_number: string | "Null";
+  email: string | "Null";
+  address: string | "Null";
+  postale_code: string | "Null";
+  city: string | "Null";
+  country: string   | "Null";
 };
 
 type Worker = {
@@ -145,23 +145,23 @@ const SiteGetById = () => {
         <Divider sx={{ mb: 2 }} />
         <Grid container spacing={2}>
           {[
-            { label: "Nom", value: site.stakeholder.name },
-            { label: "SIRET", value: site.stakeholder.tax_number },
-            { label: "TVA", value: site.stakeholder.vat_number },
-            { label: "Email", value: site.stakeholder.email },
-            { label: "Adresse", value: site.stakeholder.address },
-            { label: "Code postal", value: site.stakeholder.postale_code },
-            { label: "Ville", value: site.stakeholder.city },
-            { label: "Pays", value: site.stakeholder.country },
+        { label: "Nom", value: site.stakeholder && site.stakeholder.name && site.stakeholder.name !== "Null" && site.stakeholder.tax_number && site.id > 1 ? site.stakeholder.name : "null" },
+        { label: "SIRET", value: site.stakeholder && site.stakeholder.tax_number && site.stakeholder.tax_number !== "Null" && site.id > 1 ? site.stakeholder.tax_number : "null" },
+        { label: "TVA", value: site.stakeholder && site.stakeholder.vat_number && site.stakeholder.vat_number !== "Null" && site.id > 1 ? site.stakeholder.vat_number : "null" },
+        { label: "Email", value: site.stakeholder && site.stakeholder.email && site.stakeholder.email !== "Null" && site.id > 1 ? site.stakeholder.email : "null" },
+        { label: "Adresse", value: site.stakeholder && site.stakeholder.address && site.stakeholder.address !== "Null" && site.id > 1 ? site.stakeholder.address : "null" },
+        { label: "Code postal", value: site.stakeholder && site.stakeholder.postale_code && site.stakeholder.postale_code !== "Null" && site.id > 1 ? site.stakeholder.postale_code : "null" },
+        { label: "Ville", value: site.stakeholder && site.stakeholder.city && site.stakeholder.city !== "Null" && site.id > 1 ? site.stakeholder.city : "null" },
+        { label: "Pays", value: site.stakeholder && site.stakeholder.country && site.stakeholder.country !== "Null" && site.id > 1 ? site.stakeholder.country : "null" },
           ].map((field, index) => (
-            <Grid size={{ xs: 12, md: 4 }} key={index}>
-              <TextField
-                label={field.label}
-                value={field.value}
-                fullWidth
-                InputProps={{ readOnly: true }}
-              />
-            </Grid>
+        <Grid size={{ xs: 12, md: 4 }} key={index}>
+          <TextField
+            label={field.label}
+            value={field.value}
+            fullWidth
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
           ))}
         </Grid>
       </Paper>
