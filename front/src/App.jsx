@@ -147,16 +147,9 @@ function App() {
             />
           }
         />
-        <Route
-          path="/dashbord/chantiers"
-          element={
-            <PrivateRoute
-              conditionsEvery={[{ field: "user_type", allowedValues: ["AD"] }]}
-              component={SiteGetAll}
-            />
-          }
-        />
+
         <Route path="/dashbord/ouvriers" element={<WorkersList />} />
+        <Route path="/dashbord/chantiers" element={<SiteGetAll />} />
         <Route
           path="/dashbord/invite/user"
           element={
