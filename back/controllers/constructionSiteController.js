@@ -2,7 +2,6 @@ const { successResponse, errorResponse, notFoundResponse } = require("./utils");
 const { Op } = require("sequelize");
 
 class ConstructionSiteController {
-  // Get All Sites
   static async getAllSites(req, res) {
     try {
       const { ConstructionSite } = req.models;
@@ -29,9 +28,9 @@ class ConstructionSiteController {
           {
             model: UserAccount,
             as: "workers",
-            through: { attributes: [] }, // supprime les infos de jointure
+            through: { attributes: [] },
             attributes: {
-              exclude: ["password"], // pour éviter de renvoyer les mots de passe
+              exclude: ["password"],
             },
           },
         ],
@@ -66,7 +65,6 @@ class ConstructionSiteController {
     }
   }
 
-  // 2. Récupère les parties prenantes visibles
   static async getVisibleStakeholders(req, res) {
     const { StakeHolder } = req.models;
     try {
@@ -85,7 +83,6 @@ class ConstructionSiteController {
     }
   }
 
-  // 3. Crée un nouveau chantier et associe les utilisateurs sélectionnés
   static async createConstructionSite(req, res) {
     const { ConstructionSite, UserAccount } = req.models;
     const {
@@ -99,7 +96,6 @@ class ConstructionSiteController {
     const transaction = await ConstructionSite.sequelize.transaction();
 
     try {
-      // Étape 1 : Création du chantier
       const site = await ConstructionSite.create(
         {
           status_construction: status_construction,
@@ -110,11 +106,9 @@ class ConstructionSiteController {
         { transaction }
       );
 
-      // Étape 2 : Association des utilisateurs
       if (users.length > 0) {
         await site.addWorkers(users, { transaction });
 
-        // Étape 3 : Mise à jour de la disponibilité des utilisateurs
         await UserAccount.update(
           { is_actif: false },
           {
@@ -141,8 +135,6 @@ class ConstructionSiteController {
   static async updateStatus(req, res) {
     const { ConstructionSite, UserAccount, StakeHolder } = req.models;
     const siteId = req.params.id;
-    console.log("Updating status for site ID:", siteId);
-
     const { status_construction } = req.body;
 
     const sequelize = ConstructionSite.sequelize;
@@ -150,22 +142,19 @@ class ConstructionSiteController {
     try {
       await sequelize.transaction(async (t) => {
         const site = await ConstructionSite.findByPk(siteId, {
-          include: [{ model: UserAccount, as: "workers" }], // <--- adapter alias ici
+          include: [{ model: UserAccount, as: "workers" }],
           transaction: t,
         });
         if (!site) {
           return notFoundResponse(res, "Chantier non trouvé");
         }
 
-        // Mise à jour du statut chantier
         site.status_construction = status_construction;
         await site.save({ transaction: t });
 
-        // Récupérer les IDs des utilisateurs liés
         const userIds = site.workers.map((user) => user.id);
 
         if (userIds.length > 0) {
-          // Met à jour les users actifs
           await UserAccount.update(
             { is_actif: true },
             {

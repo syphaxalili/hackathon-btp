@@ -9,9 +9,9 @@ import { Provider } from "jotai";
 createRoot(document.getElementById("root")).render(
   <Provider > 
     <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </StrictMode>
-    </Provider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </StrictMode>
+  </Provider>
 );

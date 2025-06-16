@@ -3,7 +3,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import { Button, Typography, Box } from "@mui/material";
 import { apiUrl } from "../../config";
 import { useAtom } from "jotai";
-import { userAtom } from "../../components/Atom/UserAtom";
+import { userAtom } from "../../Atom/UserAtom";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 

@@ -11,7 +11,7 @@ import {
 import { apiUrl } from "../../config";
 import Cookies from "js-cookie";
 import { useAtom } from "jotai";
-import { userAtom } from "../../components/Atom/UserAtom";
+import { userAtom } from "../../Atom/UserAtom";
 
 type Worker = {
   first_name: string;

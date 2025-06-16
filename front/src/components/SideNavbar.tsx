@@ -17,17 +17,17 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import CategoryIcon from "@mui/icons-material/Category";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAtom } from "jotai";
-import { User, userAtom } from "./Atom/UserAtom";
+import { User, userAtom } from "../Atom/UserAtom";
 import ConstructionIcon from "@mui/icons-material/Construction";
 
 const drawerWidth = 240;
 
 const publicNavItems = [
   { label: "Dashbord", icon: <DashboardIcon />, path: "/dashbord" },
-  { label: "Chantier", icon: <HomeIcon />, path: "/dashbord/chantiers" },
-  { label: "Mes ouvriers", icon: <PeopleIcon />, path: "/dashbord/ouvriers" },
+  { label: "Chantiers", icon: <HomeIcon />, path: "/dashbord/chantiers" },
+  { label: "Utilisateurs", icon: <PeopleIcon />, path: "/dashbord/ouvriers" },
   {
-    label: "Mes sous traitant",
+    label: "Sous traitant",
     icon: <SettingsIcon />,
     path: "/dashbord/stakeholder",
   },

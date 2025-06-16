@@ -2,16 +2,15 @@ import { useEffect, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { useAtom } from "jotai";
-import { userAtom } from "./components/Atom/UserAtom";
+import { userAtom } from "./Atom/UserAtom";
 import { Routes, Route } from "react-router-dom";
 import Home from "./Pages/Home";
-import NotFound from "./components/Atom/NotFound";
-import Unauthorized from "./components/Atom/Unauthorized";
+import NotFound from "./components/NotFound";
+import Unauthorized from "./components/Unauthorized";
 import MainLayout from "./layouts/MainLayout";
-import Page1 from "./Pages/DashboardKpi";
 import WorkersList from "./Pages/ManageWorkers/WorkersList";
 import SkillsManagement from "./Pages/SkillsManagement";
-import { PrivateRoute } from "./components/Atom/PrivateRoute";
+import { PrivateRoute } from "./Atom/PrivateRoute";
 import { apiUrl } from "./config";
 import WorkerInvitation from "./Pages/ManageWorkers/WorkerInvitation";
 import Logout from "./Pages/ManageAccount/Logout";
@@ -37,7 +36,6 @@ function App() {
     }
   }, [user, navigate]);
 
-  // Fonction getDataUser mémorisée avec useCallback
   const getDataUser = useCallback(async () => {
     if (!token) {
       setUser({
@@ -47,7 +45,7 @@ function App() {
         first_name: "",
         last_name: "",
       });
-      setLoading(false); // fin du chargement
+      setLoading(false);
       navigate("/");
       return;
     }
@@ -92,7 +90,6 @@ function App() {
       });
       navigate("/unauthorized");
     } finally {
-      // Pour s'assurer que le chargement dure au moins 3 secondes
       setTimeout(() => {
         setLoading(false);
       }, 500);
@@ -123,33 +120,22 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="*" element={<NotFound />} />
-      <Route path="/unauthorized" element={<Unauthorized />} />
-      <Route path="/logout" element={<Logout />} />
-
       <Route path="/dashbord" element={<MainLayout />}>
         <Route index element={<DashboardKpi />} />
-        <Route
-          path="/dashbord/skills"
-          element={
-            <PrivateRoute
-              conditionsEvery={[{ field: "user_type", allowedValues: ["AD"] }]}
-              component={SkillsManagement}
-            />
-          }
-        />
-        <Route
-          path="/dashbord/acceuil1"
-          element={
-            <PrivateRoute
-              conditionsEvery={[{ field: "user_type", allowedValues: ["AD"] }]}
-              component={Page1}
-            />
-          }
-        />
-
-        <Route path="/dashbord/ouvriers" element={<WorkersList />} />
         <Route path="/dashbord/chantiers" element={<SiteGetAll />} />
+        <Route path="/dashbord/site/:id" element={<SiteGetById />} />
+        <Route
+          path="/dashbord/site/new"
+          element={
+            <PrivateRoute
+              conditionsEvery={[
+                { field: "user_type", allowedValues: ["AD", "CDC"] },
+              ]}
+              component={SiteCreate}
+            />
+          }
+        />
+        <Route path="/dashbord/ouvriers" element={<WorkersList />} />
         <Route
           path="/dashbord/invite/user"
           element={
@@ -159,7 +145,6 @@ function App() {
             />
           }
         />
-        <Route path="/dashbord/user/account" element={<UpdateUserData />} />
         <Route path="/dashbord/worker/:id" element={<WorkerSeeMore />} />
         <Route path="/dashbord/stakeholder" element={<StakeHolderList />} />
         <Route
@@ -175,19 +160,20 @@ function App() {
           path="/dashbord/stakeholder/:id"
           element={<StakeHolderUpdateById />}
         />
+        <Route path="/dashbord/user/account" element={<UpdateUserData />} />
         <Route
-          path="/dashbord/site/new"
+          path="/dashbord/skills"
           element={
             <PrivateRoute
-              conditionsEvery={[
-                { field: "user_type", allowedValues: ["AD", "CDC"] },
-              ]}
-              component={SiteCreate}
+              conditionsEvery={[{ field: "user_type", allowedValues: ["AD"] }]}
+              component={SkillsManagement}
             />
           }
         />
-        <Route path="/dashbord/site/:id" element={<SiteGetById />} />
       </Route>
+      <Route path="/logout" element={<Logout />} />
+      <Route path="/unauthorized" element={<Unauthorized />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

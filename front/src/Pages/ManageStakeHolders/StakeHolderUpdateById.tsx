@@ -3,7 +3,7 @@ import { TextField, Button, Box, Typography, Alert } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import { apiUrl } from "../../config";
 import { useAtom } from "jotai";
-import { userAtom } from "../../components/Atom/UserAtom";
+import { userAtom } from "../../Atom/UserAtom";
 import Cookies from "js-cookie";
 
 const StakeHolderUpdateById = () => {

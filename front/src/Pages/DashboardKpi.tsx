@@ -3,11 +3,6 @@ import Cookie from 'js-cookie';
 import { Box, Card, CardContent, CardHeader, Typography, CardActionArea, useTheme } from '@mui/material';
 import { apiUrl } from '../config';
 
-// Structure de données KPI attendue
-// users: total, active, inactive
-// sites: total, validated, closed, cancelled
-// stakeholders: total
-
 type KpiData = {
   users: { total: number; active: number; inactive: number };
   sites: { total: number; validated: number; closed: number; cancelled: number };
@@ -33,10 +28,6 @@ export default function DashboardKpiStyled() {
     return <Typography>Chargement des KPI…</Typography>;
   }
 
-  // Groupes :
-  // 1. Utilisateurs (total bleu, actif vert, inactif orange)
-  // 2. Chantiers (total bleu, clôturés vert, annulés rouge)
-  // 3. Parties Prenantes (total bleu)
   const cards = [
     // Utilisateurs
     {
@@ -50,16 +41,17 @@ export default function DashboardKpiStyled() {
       id: 'u_active',
       title: 'Utilisateurs Actifs',
       value: kpis.users.active,
-      titleColor: theme.palette.success.light, // vert actif plus clair
+      titleColor: theme.palette.success.light,
       comment: 'Utilisateurs ayant interagi au cours des 30 derniers jours.'
     },
     {
       id: 'u_inactive',
       title: 'Utilisateurs Inactifs',
       value: kpis.users.inactive,
-      titleColor: theme.palette.warning.main, // orange inactif
+      titleColor: theme.palette.warning.main,
       comment: 'Utilisateurs sans connexion récente.'
     },
+    
     // Chantiers
     {
       id: 's_total',

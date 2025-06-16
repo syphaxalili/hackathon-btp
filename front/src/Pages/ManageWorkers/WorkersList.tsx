@@ -3,7 +3,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import { Button, Typography, Box } from "@mui/material";
 import { apiUrl } from "../../config";
 import { useAtom } from "jotai";
-import { userAtom } from "../../components/Atom/UserAtom";
+import { userAtom } from "../../Atom/UserAtom";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 
@@ -119,7 +119,7 @@ const WorkersList = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => window.location.assign("/dashbord/invite/user")}
+            onClick={() => navigate("/dashbord/invite/user")}
           >
             Inviter un utilisateur
           </Button>

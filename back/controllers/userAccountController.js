@@ -251,10 +251,8 @@ class UserAccountController {
       if (last_name) updateFields.last_name = last_name;
 
       if (password) {
-        console.log("password", password);
-
         const hashedPassword = await bcrypt.hash(password, 10);
-        updateFields.password = hashedPassword; // ⚠️ ou quel que soit ton nom de champ réel
+        updateFields.password = hashedPassword;
       }
 
       if (Object.keys(updateFields).length === 0)
@@ -274,7 +272,6 @@ class UserAccountController {
   static async delete(req, res) {
     try {
       const { id } = req.params;
-      console.log("Deleting user with ID:", id);
 
       const { UserAccount } = req.models;
 

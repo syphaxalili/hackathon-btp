@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import { apiUrl } from "../../config";
 import { useAtom } from "jotai";
-import { userAtom } from "../../components/Atom/UserAtom";
+import { userAtom } from "../../Atom/UserAtom";
 import { useNavigate } from "react-router-dom";
 import Cookie from "js-cookie";
 import axios from "axios";
@@ -201,7 +201,7 @@ const SiteGetAll = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => window.location.assign("/dashbord/site/new")}
+            onClick={() => navigate("/dashbord/site/new")}
           >
             Créer un chantier
           </Button>

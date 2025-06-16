@@ -7,7 +7,7 @@ const MainLayout = () => {
     <div style={{ display: "flex" }}>
       <Sidebar />
       <main style={{ flexGrow: 1, padding: "1rem" }}>
-        <Outlet /> {/* Affiche la page courante ici */}
+        <Outlet />
       </main>
     </div>
   );

@@ -4,7 +4,7 @@ import { keyframes } from "@emotion/react";
 import styled from "@emotion/styled";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
-import { userAtom } from "../components/Atom/UserAtom";
+import { userAtom } from "../Atom/UserAtom";
 import { apiUrl } from "../config";
 
 const fadeIn = keyframes`
@@ -58,16 +58,12 @@ const Home = () => {
       });
 
       const data = await response.json();
-      console.log("Login response:", data);
       if (response.ok && data.success && data.data?.user) {
-        // Recharge l'user atom avec les données reçues
         setUser({
           id: data.data.user.id,
           email: data.data.user.email,
           user_type: data.data.user.user_type,
         });
-        console.log(user.email);
-
         navigate("/dashbord");
       } else {
         setError(data.message || "Erreur de connexion");
